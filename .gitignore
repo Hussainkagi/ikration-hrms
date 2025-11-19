@@ -1,0 +1,36 @@
+.next/
+out/
+node_modules/
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tailwind cache
+.tailwindcss/
+
+# Shadcn UI
+components.json
+
+# TypeScript
+*.tsbuildinfo
+
+# Build artifacts
+/dist
+/build
+.vercel/
+
+# IDE settings
+.vscode/
+.idea/
