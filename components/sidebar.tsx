@@ -58,11 +58,12 @@ export default function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all no-underline ${
                     isActive
-                      ? "bg-orange-50 text-orange-600 font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-orange-50 text-black font-medium"
+                      : "text-black hover:bg-gray-100"
                   }`}
+                  style={{ textDecoration: "none" }}
                 >
                   <Icon className="w-5 h-5" />
                   {item.name}
