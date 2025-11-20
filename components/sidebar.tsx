@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,6 +10,7 @@ import {
   X,
   Building2,
   LogOut,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -24,13 +24,24 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleLogout = () => {
+    // Remove access token from localStorage
+    localStorage.removeItem("accessToken");
+
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out.",
     });
-    router.push("/");
+
+    // Close dialog and reload the page
+    setIsLogoutDialogOpen(false);
+    window.location.reload();
+  };
+
+  const openLogoutDialog = () => {
+    setIsLogoutDialogOpen(true);
   };
 
   return (
@@ -60,8 +71,8 @@ export default function Sidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all no-underline ${
                     isActive
-                      ? "bg-orange-50 text-black font-medium"
-                      : "text-black hover:bg-gray-100"
+                      ? "bg-orange-50 text-orange-600 font-medium"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                   style={{ textDecoration: "none" }}
                 >
@@ -74,11 +85,11 @@ export default function Sidebar() {
 
           <div className="p-4 border-t border-gray-200">
             <button
-              onClick={handleLogout}
+              onClick={openLogoutDialog}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-all w-full font-medium"
             >
               <LogOut className="w-5 h-5" />
-              Logouta
+              Logout
             </button>
           </div>
         </div>
@@ -137,7 +148,7 @@ export default function Sidebar() {
             <div className="p-4 border-t border-gray-200 mt-auto">
               <button
                 onClick={() => {
-                  handleLogout();
+                  openLogoutDialog();
                   setIsMobileMenuOpen(false);
                 }}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all w-full font-medium"
@@ -145,6 +156,47 @@ export default function Sidebar() {
                 <LogOut className="w-5 h-5" />
                 Logout
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Dialog */}
+      {isLogoutDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center 
+    bg-gradient-to-b from-black/60 to-black/30 backdrop-blur-sm"
+        >
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Confirm Logout
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Are you sure you want to logout? You will be logged out of
+                  your account and redirected to the login page.
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setIsLogoutDialogOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
