@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Building2, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,6 +10,8 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const router = useRouter();
 
   const handleInputChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -199,7 +202,7 @@ export default function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={isLoading}
-                className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoading ? "Signing in..." : "Sign in"}
               </button>
@@ -207,7 +210,7 @@ export default function LoginPage() {
               {/* Sign in with Google */}
               <button
                 type="button"
-                className="w-full h-11 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 bg-white flex items-center justify-center gap-2"
+                className="w-full h-11 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 bg-white flex items-center justify-center gap-2 cursor-pointer"
                 disabled={isLoading}
               >
                 <svg
@@ -242,8 +245,9 @@ export default function LoginPage() {
                 </span>
                 <button
                   type="button"
-                  className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50"
+                  className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
                   disabled={isLoading}
+                  onClick={() => router.push("/register")}
                 >
                   Sign up
                 </button>
