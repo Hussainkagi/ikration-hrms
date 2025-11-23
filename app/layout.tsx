@@ -43,7 +43,9 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <AuthProvider>
           <AppProvider>
-            <AuthGuard publicRoutes={["/login", "/register", "/"]}>
+            <AuthGuard
+              publicRoutes={["/login", "/register", "/", "/verification"]}
+            >
               {children}
             </AuthGuard>
           </AppProvider>

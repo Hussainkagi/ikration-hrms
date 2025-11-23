@@ -1,18 +1,23 @@
 "use client";
 
-import type React from "react";
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
-  Table,
-  Pagination,
-  Spinner,
-  Button,
-  Card,
-  Form,
-  InputGroup,
-  Dropdown,
-  Badge,
-} from "react-bootstrap";
+  Search,
+  X,
+  Download,
+  Columns,
+  Filter,
+  Inbox,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2,
+  MoreHorizontal,
+} from "lucide-react";
 
 interface Column<T> {
   key: string;
@@ -41,7 +46,7 @@ interface CommonTableProps<T> {
   showSearch?: boolean;
   searchPlaceholder?: string;
   emptyMessage?: string;
-  emptyIcon?: string;
+  emptyIcon?: React.ReactNode;
   emptyAction?: React.ReactNode;
   className?: string;
   cardHeader?: React.ReactNode;
@@ -70,7 +75,7 @@ function CommonTable<T extends Record<string, any>>({
   showSearch = true,
   searchPlaceholder = "Search...",
   emptyMessage = "No data found",
-  emptyIcon = "bi-inbox",
+  emptyIcon = <Inbox className="w-12 h-12" />,
   emptyAction = null,
   className = "",
   cardHeader = null,
@@ -113,10 +118,14 @@ function CommonTable<T extends Record<string, any>>({
     Record<string, string>
   >({});
   const [isMobile, setIsMobile] = useState(false);
+  const [showSearchColumnDropdown, setShowSearchColumnDropdown] =
+    useState(false);
+  const [showColumnToggleDropdown, setShowColumnToggleDropdown] =
+    useState(false);
+  const [showPerPageDropdown, setShowPerPageDropdown] = useState(false);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
-  // Detect mobile screen
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -231,6 +240,15 @@ function CommonTable<T extends Record<string, any>>({
       if (!(event.target as Element).closest(".filter-dropdown")) {
         setOpenFilterDropdown(null);
       }
+      if (!(event.target as Element).closest(".search-column-dropdown")) {
+        setShowSearchColumnDropdown(false);
+      }
+      if (!(event.target as Element).closest(".column-toggle-dropdown")) {
+        setShowColumnToggleDropdown(false);
+      }
+      if (!(event.target as Element).closest(".per-page-dropdown")) {
+        setShowPerPageDropdown(false);
+      }
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -248,7 +266,7 @@ function CommonTable<T extends Record<string, any>>({
   const handleRowClick = (row: T, event: React.MouseEvent) => {
     if (
       (event.target as Element).closest(
-        'input[type="checkbox"], button, a, .btn, [data-bs-toggle], .filter-dropdown'
+        'input[type="checkbox"], button, a, .filter-dropdown'
       )
     ) {
       return;
@@ -404,124 +422,117 @@ function CommonTable<T extends Record<string, any>>({
     const allSelected = selectedFilters.length === filteredValues.length;
 
     return (
-      <Dropdown
-        show={isOpen}
-        onToggle={() => {
-          setOpenFilterDropdown(isOpen ? null : originalIndex);
-          if (isOpen) {
-            setFilterSearchTerms((prev) => ({ ...prev, [column.key]: "" }));
-          }
-        }}
-        className="filter-dropdown d-inline-block"
-      >
-        <Dropdown.Toggle
-          as="button"
-          className={`btn btn-link p-0 ms-1 ${
-            hasActiveFilter ? "text-primary" : "text-muted"
-          }`}
-          style={{
-            border: "none",
-            background: "none",
-            fontSize: "12px",
-            opacity: hasActiveFilter ? 1 : 0.6,
+      <div className="filter-dropdown inline-block relative">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpenFilterDropdown(isOpen ? null : originalIndex);
+            if (isOpen) {
+              setFilterSearchTerms((prev) => ({ ...prev, [column.key]: "" }));
+            }
           }}
+          className={`ml-1 p-0 border-none bg-transparent text-xs ${
+            hasActiveFilter ? "text-blue-600" : "text-gray-400"
+          } hover:text-blue-700 transition-colors`}
         >
-          <i className={`bi-funnel${hasActiveFilter ? "-fill" : ""}`}></i>
-        </Dropdown.Toggle>
+          <Filter
+            className={`w-3 h-3 ${hasActiveFilter ? "fill-current" : ""}`}
+          />
+        </button>
 
-        <Dropdown.Menu
-          className="shadow-lg border-0"
-          style={{ minWidth: "250px", maxHeight: "300px", overflowY: "auto" }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Dropdown.Header className="d-flex justify-content-between align-items-center">
-            <span
-              className="text-uppercase fw-bold"
-              style={{ fontSize: "0.75rem" }}
-            >
-              Filter {column.header}
-            </span>
-            {hasActiveFilter && (
-              <Button
-                variant="link"
-                size="sm"
-                className="p-0 text-danger"
-                onClick={() => clearColumnFilter(column.key)}
-              >
-                Clear
-              </Button>
+        {isOpen && (
+          <div
+            className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-80 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+              <span className="text-xs font-bold text-gray-700 uppercase">
+                Filter {column.header}
+              </span>
+              {hasActiveFilter && (
+                <button
+                  onClick={() => clearColumnFilter(column.key)}
+                  className="text-xs text-red-600 hover:text-red-700 font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div className="px-3 py-2">
+              <input
+                type="text"
+                placeholder="Search values..."
+                value={searchTerm}
+                onChange={(e) =>
+                  setFilterSearchTerms((prev) => ({
+                    ...prev,
+                    [column.key]: e.target.value,
+                  }))
+                }
+                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            <div className="border-t border-gray-200" />
+
+            {filteredValues.length > 0 && (
+              <>
+                <label
+                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    toggleAllValues(column.key, filteredValues, !allSelected)
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={() => {}}
+                    className="mr-2 pointer-events-none"
+                  />
+                  <span className="text-sm">
+                    {allSelected ? "Deselect All" : "Select All"}
+                  </span>
+                </label>
+                <div className="border-t border-gray-200" />
+              </>
             )}
-          </Dropdown.Header>
 
-          <Dropdown.Divider />
+            {filteredValues.map((value, index) => {
+              const isSelected = selectedFilters.includes(value);
+              const displayValue =
+                value === null || value === undefined
+                  ? "(blank)"
+                  : String(value);
 
-          <div className="px-3 pb-2">
-            <Form.Control
-              type="text"
-              placeholder="Search values..."
-              value={searchTerm}
-              onChange={(e) =>
-                setFilterSearchTerms((prev) => ({
-                  ...prev,
-                  [column.key]: e.target.value,
-                }))
-              }
-              size="sm"
-              onClick={(e) => e.stopPropagation()}
-            />
+              return (
+                <label
+                  key={index}
+                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    handleFilterChange(column.key, value, !isSelected)
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}}
+                    className="mr-2 pointer-events-none"
+                  />
+                  <span className="text-sm">{displayValue}</span>
+                </label>
+              );
+            })}
+
+            {filteredValues.length === 0 && searchTerm && (
+              <div className="px-4 py-2 text-sm text-gray-500">
+                No values match "{searchTerm}"
+              </div>
+            )}
           </div>
-
-          <Dropdown.Divider />
-
-          {filteredValues.length > 0 && (
-            <>
-              <Dropdown.Item
-                onClick={() =>
-                  toggleAllValues(column.key, filteredValues, !allSelected)
-                }
-              >
-                <Form.Check
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={() => {}}
-                  label={allSelected ? "Deselect All" : "Select All"}
-                  style={{ pointerEvents: "none" }}
-                />
-              </Dropdown.Item>
-              <Dropdown.Divider />
-            </>
-          )}
-
-          {filteredValues.map((value, index) => {
-            const isSelected = selectedFilters.includes(value);
-            const displayValue =
-              value === null || value === undefined ? "(blank)" : String(value);
-
-            return (
-              <Dropdown.Item
-                key={index}
-                onClick={() =>
-                  handleFilterChange(column.key, value, !isSelected)
-                }
-              >
-                <Form.Check
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => {}}
-                  label={displayValue}
-                  style={{ pointerEvents: "none" }}
-                />
-              </Dropdown.Item>
-            );
-          })}
-
-          {filteredValues.length === 0 && searchTerm && (
-            <Dropdown.Item disabled>
-              No values match "{searchTerm}"
-            </Dropdown.Item>
-          )}
-        </Dropdown.Menu>
-      </Dropdown>
+        )}
+      </div>
     );
   };
 
@@ -533,150 +544,189 @@ function CommonTable<T extends Record<string, any>>({
     return (
       <div className="mb-4">
         <div
-          className={`row g-3 align-items-center ${
-            isMobile ? "flex-column" : ""
-          }`}
+          className={`flex gap-3 items-center ${isMobile ? "flex-col" : ""}`}
         >
-          <div className={isMobile ? "col-12" : "col-md-6"}>
-            <div className="d-flex gap-2 flex-column flex-sm-row">
-              <Dropdown className={isMobile ? "w-100" : ""}>
-                <Dropdown.Toggle
-                  variant="outline-secondary"
-                  size="sm"
-                  className={isMobile ? "w-100" : ""}
+          <div className={isMobile ? "w-full" : "flex-1"}>
+            <div className="flex gap-2 flex-col sm:flex-row">
+              <div
+                className={`search-column-dropdown relative ${
+                  isMobile ? "w-full" : ""
+                }`}
+              >
+                <button
+                  onClick={() =>
+                    setShowSearchColumnDropdown(!showSearchColumnDropdown)
+                  }
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 ${
+                    isMobile ? "w-full justify-between" : ""
+                  }`}
                 >
-                  <i className="bi-funnel me-1"></i>
-                  {searchColumn === "all"
-                    ? "All Columns"
-                    : columns.find((col) => col.key === searchColumn)?.header}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => setSearchColumn("all")}>
-                    All Columns
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
-                  {searchableColumns.map((col) => (
-                    <Dropdown.Item
-                      key={col.key}
-                      onClick={() => setSearchColumn(col.key)}
-                    >
-                      {col.header}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+                  <Filter className="w-4 h-4" />
+                  <span>
+                    {searchColumn === "all"
+                      ? "All Columns"
+                      : columns.find((col) => col.key === searchColumn)?.header}
+                  </span>
+                </button>
 
-              <InputGroup className="flex-grow-1">
-                <InputGroup.Text>
-                  <i className="bi-search"></i>
-                </InputGroup.Text>
-                <Form.Control
-                  type="text"
-                  placeholder={searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <Button
-                    variant="outline-secondary"
-                    onClick={() => setSearchTerm("")}
-                  >
-                    <i className="bi-x"></i>
-                  </Button>
+                {showSearchColumnDropdown && (
+                  <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
+                    <button
+                      onClick={() => {
+                        setSearchColumn("all");
+                        setShowSearchColumnDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                    >
+                      All Columns
+                    </button>
+                    <div className="border-t border-gray-200" />
+                    {searchableColumns.map((col) => (
+                      <button
+                        key={col.key}
+                        onClick={() => {
+                          setSearchColumn(col.key);
+                          setShowSearchColumnDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                      >
+                        {col.header}
+                      </button>
+                    ))}
+                  </div>
                 )}
-              </InputGroup>
+              </div>
+
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={searchPlaceholder}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                    >
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className={isMobile ? "col-12" : "col-md-6"}>
+          <div className={isMobile ? "w-full" : ""}>
             <div
-              className={`d-flex gap-2 ${
-                isMobile ? "flex-wrap" : "justify-content-end"
-              }`}
+              className={`flex gap-2 ${isMobile ? "flex-wrap" : "justify-end"}`}
             >
               {showPerPageSelector && (
-                <div className="d-flex align-items-center">
-                  <small className="me-2">Show:</small>
-                  <Form.Select
-                    size="sm"
-                    style={{ width: "70px" }}
-                    value={currentPerPage}
-                    onChange={(e) => setCurrentPerPage(Number(e.target.value))}
-                  >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </Form.Select>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Show:</span>
+                  <div className="per-page-dropdown relative">
+                    <button
+                      onClick={() =>
+                        setShowPerPageDropdown(!showPerPageDropdown)
+                      }
+                      className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                    >
+                      {currentPerPage}
+                    </button>
+                    {showPerPageDropdown && (
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        {[5, 10, 25, 50, 100].map((num) => (
+                          <button
+                            key={num}
+                            onClick={() => {
+                              setCurrentPerPage(num);
+                              setShowPerPageDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               {showColumnToggle && !isMobile && (
-                <Dropdown>
-                  <Dropdown.Toggle variant="outline-secondary" size="sm">
-                    <i className="bi-columns-gap me-1"></i>
-                    Columns
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {columns.map((col, i) => (
-                      <Dropdown.Item
-                        key={i}
-                        onClick={() =>
-                          setVisibleColumns((prev) => ({
-                            ...prev,
-                            [i]: !prev[i],
-                          }))
-                        }
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          checked={visibleColumns[i]}
-                          onChange={() => {}}
-                          label={col.header}
-                          style={{ pointerEvents: "none" }}
-                        />
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
+                <div className="column-toggle-dropdown relative">
+                  <button
+                    onClick={() =>
+                      setShowColumnToggleDropdown(!showColumnToggleDropdown)
+                    }
+                    className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    <Columns className="w-4 h-4" />
+                    <span>Columns</span>
+                  </button>
+                  {showColumnToggleDropdown && (
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
+                      {columns.map((col, i) => (
+                        <label
+                          key={i}
+                          className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                          onClick={() =>
+                            setVisibleColumns((prev) => ({
+                              ...prev,
+                              [i]: !prev[i],
+                            }))
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns[i]}
+                            onChange={() => {}}
+                            className="mr-2 pointer-events-none"
+                          />
+                          <span className="text-sm">{col.header}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {exportable && (
-                <Button
-                  variant="outline-success"
-                  size="sm"
+                <button
                   onClick={handleExport}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-green-500 text-green-600 rounded hover:bg-green-50"
                 >
-                  <i className="bi-download me-1"></i>
-                  {!isMobile && "Export"}
-                </Button>
+                  <Download className="w-4 h-4" />
+                  {!isMobile && <span>Export</span>}
+                </button>
               )}
             </div>
           </div>
         </div>
 
         {(selectedRows.size > 0 || activeFiltersCount > 0) && (
-          <div className="mt-3 d-flex gap-2 flex-wrap">
+          <div className="mt-3 flex gap-2 flex-wrap">
             {selectedRows.size > 0 && (
-              <Badge bg="primary">
+              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                 {selectedRows.size} row{selectedRows.size > 1 ? "s" : ""}{" "}
                 selected
-              </Badge>
+              </span>
             )}
             {activeFiltersCount > 0 && (
               <>
-                <Badge bg="warning">
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
                   {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""}{" "}
                   active
-                </Badge>
-                <Button
-                  variant="outline-warning"
-                  size="sm"
+                </span>
+                <button
                   onClick={() => setColumnFilters({})}
+                  className="px-3 py-1 text-sm border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50"
                 >
                   Clear All Filters
-                </Button>
+                </button>
               </>
             )}
           </div>
@@ -690,9 +740,11 @@ function CommonTable<T extends Record<string, any>>({
     const isSelected = selectedRows.has(rowId);
 
     return (
-      <Card
+      <div
         key={rowId}
-        className={`mb-3 ${isSelected ? "border-primary" : ""}`}
+        className={`mb-3 bg-white rounded-lg border ${
+          isSelected ? "border-blue-500" : "border-gray-200"
+        } p-4 shadow-sm`}
         onClick={(e) => handleRowClick(row, e)}
         style={{
           cursor:
@@ -701,63 +753,69 @@ function CommonTable<T extends Record<string, any>>({
               : "default",
         }}
       >
-        <Card.Body>
-          {selectableRows && (
-            <div className="mb-2">
-              <Form.Check
+        {selectableRows && (
+          <div className="mb-2">
+            <label className="flex items-center">
+              <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={(e) => handleRowSelect(rowId, e.target.checked, e)}
-                label="Select"
+                className="mr-2"
               />
-            </div>
-          )}
-          {visibleColumnsList.map((column, colIndex) => {
-            const value = column.render
-              ? column.render(row, rowIndex + startIndex)
-              : getNestedValue(row, column.key);
+              <span className="text-sm">Select</span>
+            </label>
+          </div>
+        )}
+        {visibleColumnsList.map((column, colIndex) => {
+          const value = column.render
+            ? column.render(row, rowIndex + startIndex)
+            : getNestedValue(row, column.key);
 
-            return (
-              <div key={colIndex} className="mb-2">
-                <strong className="text-muted small d-block">
-                  {column.header}
-                </strong>
-                <div>{value}</div>
-              </div>
-            );
-          })}
-        </Card.Body>
-      </Card>
+          return (
+            <div key={colIndex} className="mb-2">
+              <strong className="text-gray-600 text-sm block">
+                {column.header}
+              </strong>
+              <div className="text-gray-900">{value}</div>
+            </div>
+          );
+        })}
+      </div>
     );
   };
 
   const renderTable = () => {
     if (loading) {
       return (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-3 text-muted">Loading data...</p>
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+          <p className="mt-3 text-gray-500">Loading data...</p>
         </div>
       );
     }
 
     if (processedData.length === 0 && searchTerm) {
       return (
-        <div className="text-center py-5">
-          <i className="bi-search display-6 text-muted"></i>
-          <h5 className="mt-3 text-muted">No results found</h5>
-          <Button variant="outline-primary" onClick={() => setSearchTerm("")}>
+        <div className="text-center py-12">
+          <Search className="w-12 h-12 text-gray-400 mx-auto" />
+          <h5 className="mt-3 text-gray-500 font-medium">No results found</h5>
+          <button
+            onClick={() => setSearchTerm("")}
+            className="mt-3 px-4 py-2 border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
+          >
             Clear Search
-          </Button>
+          </button>
         </div>
       );
     }
 
     if (data.length === 0) {
       return (
-        <div className="text-center py-5">
-          <i className={`${emptyIcon} display-6 text-muted`}></i>
-          <h5 className="mt-3 text-muted">{emptyMessage}</h5>
+        <div className="text-center py-12">
+          <div className="text-gray-400 mx-auto flex justify-center">
+            {emptyIcon}
+          </div>
+          <h5 className="mt-3 text-gray-500 font-medium">{emptyMessage}</h5>
           {emptyAction}
         </div>
       );
@@ -787,18 +845,16 @@ function CommonTable<T extends Record<string, any>>({
 
     return (
       <TableWrapper>
-        <Table
+        <table
           ref={tableRef}
-          striped={striped}
-          hover={hover}
-          className={className}
+          className={`w-full text-sm text-left ${className}`}
           style={{ tableLayout: "auto", minWidth: "100%" }}
         >
-          <thead>
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               {selectableRows && (
-                <th style={{ width: "50px" }}>
-                  <Form.Check
+                <th className="px-4 py-3" style={{ width: "50px" }}>
+                  <input
                     type="checkbox"
                     checked={
                       currentData.length > 0 &&
@@ -818,26 +874,28 @@ function CommonTable<T extends Record<string, any>>({
                   <th
                     key={originalIndex}
                     style={{ width, position: "relative" }}
-                    className={column.headerClassName}
+                    className={`px-4 py-3 font-medium text-gray-900 ${
+                      column.headerClassName || ""
+                    }`}
                     onClick={() =>
                       column.sortable !== false && handleSort(column.key)
                     }
                   >
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div className="d-flex align-items-center">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
                         <span>{column.header}</span>
                         {renderFilterDropdown(column, originalIndex)}
                       </div>
                       {sortable && column.sortable !== false && (
-                        <span className="ms-2">
+                        <span className="ml-2">
                           {sortConfig.key === column.key ? (
                             sortConfig.direction === "asc" ? (
-                              <i className="bi-arrow-up text-primary"></i>
+                              <ArrowUp className="w-4 h-4 text-blue-600" />
                             ) : (
-                              <i className="bi-arrow-down text-primary"></i>
+                              <ArrowDown className="w-4 h-4 text-blue-600" />
                             )
                           ) : (
-                            <i className="bi-arrow-down-up text-muted opacity-50"></i>
+                            <ArrowUpDown className="w-4 h-4 text-gray-400 opacity-50" />
                           )}
                         </span>
                       )}
@@ -852,8 +910,8 @@ function CommonTable<T extends Record<string, any>>({
                           bottom: 0,
                           width: "4px",
                           cursor: "col-resize",
-                          borderRight: "2px solid #dee2e6",
                         }}
+                        className="border-r-2 border-gray-300 hover:border-blue-500"
                         onMouseDown={(e) => handleMouseDown(e, originalIndex)}
                       />
                     )}
@@ -862,7 +920,7 @@ function CommonTable<T extends Record<string, any>>({
               })}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {currentData.map((row, rowIndex) => {
               const rowId = getRowId(row);
               const isSelected = selectedRows.has(rowId);
@@ -870,7 +928,11 @@ function CommonTable<T extends Record<string, any>>({
               return (
                 <tr
                   key={rowId}
-                  className={isSelected ? "table-active" : ""}
+                  className={`${
+                    striped && rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+                  } ${hover ? "hover:bg-gray-100" : ""} ${
+                    isSelected ? "bg-blue-50" : ""
+                  } transition-colors`}
                   style={{
                     cursor:
                       typeof onRowClick === "function" && rowClickable
@@ -880,8 +942,8 @@ function CommonTable<T extends Record<string, any>>({
                   onClick={(e) => handleRowClick(row, e)}
                 >
                   {selectableRows && (
-                    <td>
-                      <Form.Check
+                    <td className="px-4 py-3">
+                      <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={(e) =>
@@ -897,7 +959,7 @@ function CommonTable<T extends Record<string, any>>({
                     return (
                       <td
                         key={colIndex}
-                        className={column.cellClassName}
+                        className={`px-4 py-3 ${column.cellClassName || ""}`}
                         style={{
                           width,
                           maxWidth: column.maxWidth || "200px",
@@ -921,7 +983,7 @@ function CommonTable<T extends Record<string, any>>({
               );
             })}
           </tbody>
-        </Table>
+        </table>
       </TableWrapper>
     );
   };
@@ -941,69 +1003,91 @@ function CommonTable<T extends Record<string, any>>({
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(
-          <Pagination.Item
+          <button
             key={i}
-            active={i === currentPage}
             onClick={() => setCurrentPage(i)}
+            className={`px-3 py-1 text-sm rounded ${
+              i === currentPage
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+            }`}
           >
             {i}
-          </Pagination.Item>
+          </button>
         );
       }
     } else {
       items.push(
-        <Pagination.Item
+        <button
           key={1}
-          active={1 === currentPage}
           onClick={() => setCurrentPage(1)}
+          className={`px-3 py-1 text-sm rounded ${
+            1 === currentPage
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+          }`}
         >
           1
-        </Pagination.Item>
+        </button>
       );
 
       if (currentPage > 3)
-        items.push(<Pagination.Ellipsis key="start-ellipsis" />);
+        items.push(
+          <span key="start-ellipsis" className="px-2">
+            <MoreHorizontal className="w-4 h-4 text-gray-400" />
+          </span>
+        );
 
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
 
       for (let i = start; i <= end; i++) {
         items.push(
-          <Pagination.Item
+          <button
             key={i}
-            active={i === currentPage}
             onClick={() => setCurrentPage(i)}
+            className={`px-3 py-1 text-sm rounded ${
+              i === currentPage
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+            }`}
           >
             {i}
-          </Pagination.Item>
+          </button>
         );
       }
 
       if (currentPage < totalPages - 2)
-        items.push(<Pagination.Ellipsis key="end-ellipsis" />);
+        items.push(
+          <span key="end-ellipsis" className="px-2">
+            <MoreHorizontal className="w-4 h-4 text-gray-400" />
+          </span>
+        );
 
       if (totalPages > 1) {
         items.push(
-          <Pagination.Item
+          <button
             key={totalPages}
-            active={totalPages === currentPage}
             onClick={() => setCurrentPage(totalPages)}
+            className={`px-3 py-1 text-sm rounded ${
+              totalPages === currentPage
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+            }`}
           >
             {totalPages}
-          </Pagination.Item>
+          </button>
         );
       }
     }
 
     return (
-      <Card.Footer
-        className={`d-flex ${
-          isMobile
-            ? "flex-column gap-3"
-            : "justify-content-between align-items-center"
+      <div
+        className={`bg-white border-t border-gray-200 px-4 py-3 flex ${
+          isMobile ? "flex-col gap-3" : "justify-between items-center"
         }`}
       >
-        <div className="text-muted small">
+        <div className="text-sm text-gray-600">
           Showing {startIndex + 1} to {Math.min(endIndex, processedData.length)}{" "}
           of {processedData.length} entries
           {(searchTerm || Object.keys(columnFilters).length > 0) && (
@@ -1011,40 +1095,54 @@ function CommonTable<T extends Record<string, any>>({
           )}
         </div>
 
-        <Pagination size="sm" className="mb-0">
-          <Pagination.First
+        <div className="flex items-center gap-2">
+          <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(1)}
-          />
-          <Pagination.Prev
+            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronsLeft className="w-4 h-4" />
+          </button>
+          <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-          />
+            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
           {items}
-          <Pagination.Next
+          <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
-          />
-          <Pagination.Last
+            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(totalPages)}
-          />
-        </Pagination>
-      </Card.Footer>
+            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronsRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     );
   };
 
   return (
-    <Card className="shadow-sm border-0">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {cardHeader && (
-        <Card.Header className="bg-white">{cardHeader}</Card.Header>
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          {cardHeader}
+        </div>
       )}
-      <Card.Body className={showSearch ? "p-4" : "p-0"}>
+      <div className={showSearch ? "p-4" : "p-0"}>
         {renderSearchBar()}
         {renderTable()}
-      </Card.Body>
+      </div>
       {renderPagination()}
-    </Card>
+    </div>
   );
 }
 

@@ -271,7 +271,7 @@ export default function LoginPage() {
         <div className="relative z-10 text-center text-white max-w-lg">
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm mb-6">
-              <Building2 className="w-16 h-16 text-white" />
+              <Building2 className="w-16 h-16 text-orange-500" />
             </div>
             <h2 className="text-4xl font-bold mb-4">Manage Your Workforce</h2>
             <p className="text-lg text-white text-opacity-90">

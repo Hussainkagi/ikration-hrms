@@ -1,145 +1,371 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import DashboardLayout from '@/components/dashboard-layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { toast } from '@/hooks/use-toast'
-import { Plus, Pencil, Trash2, Mail, User, Upload } from 'lucide-react'
-import ImportEmployeeModal from '@/components/import-employee-modal'
+import { useState, useEffect } from "react";
+import DashboardLayout from "@/components/dashboard-layout";
+import CommonTable from "@/components/ui/commonTable";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { Plus, Pencil, Trash2, Mail, User, Phone, Upload } from "lucide-react";
+import ImportEmployeeModal from "@/components/import-employee-modal";
+import BootstrapWrapper from "@/components/bootstrapWrapper";
 
 interface Employee {
-  id: string
-  name: string
-  email: string
-  image: string
-  createdAt: string
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobileNumber: string;
+  role: string;
+  status: string;
+  createdAt: string;
 }
 
-const initialEmployees: Employee[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@company.com',
-    image: '/professional-male.jpg',
-    createdAt: '2024-01-15',
-  },
-  {
-    id: '2',
-    name: 'Sarah Smith',
-    email: 'sarah.smith@company.com',
-    image: '/professional-female.png',
-    createdAt: '2024-01-20',
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@company.com',
-    image: '/professional-male-2.jpg',
-    createdAt: '2024-02-01',
-  },
-]
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees)
-  const [isAddingEmployee, setIsAddingEmployee] = useState(false)
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
-  const [formData, setFormData] = useState({ name: '', email: '' })
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddingEmployee, setIsAddingEmployee] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNumber: "",
+    role: "employee",
+    status: "active",
+  });
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (editingEmployee) {
-      // Edit employee
-      setEmployees(employees.map(emp => 
-        emp.id === editingEmployee.id 
-          ? { ...emp, name: formData.name, email: formData.email }
-          : emp
-      ))
+  // Get token from localStorage
+  const getAuthToken = () => {
+    return localStorage.getItem("accessToken");
+  };
+
+  // Fetch employees from API
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const token = getAuthToken();
+
+      const response = await fetch(`${API_BASE_URL}/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch employees");
+
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
       toast({
-        title: "Employee Updated",
-        description: `${formData.name} has been updated successfully.`,
-      })
-      setEditingEmployee(null)
-    } else {
-      // Add new employee
-      const newEmployee: Employee = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        image: `/placeholder.svg?height=40&width=40&query=${formData.name}`,
-        createdAt: new Date().toISOString().split('T')[0],
-      }
-      setEmployees([...employees, newEmployee])
-      toast({
-        title: "Employee Added",
-        description: `${formData.name} has been added successfully.`,
-      })
-      setIsAddingEmployee(false)
+        title: "Error",
+        description: "Failed to fetch employees. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    setFormData({ name: '', email: '' })
-  }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = getAuthToken();
+      const url = editingEmployee
+        ? `${API_BASE_URL}/user/${editingEmployee._id}`
+        : `${API_BASE_URL}/user`;
+
+      const method = editingEmployee ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to save employee");
+
+      toast({
+        title: editingEmployee ? "Employee Updated" : "Employee Added",
+        description: `${formData.firstName} ${formData.lastName} has been ${
+          editingEmployee ? "updated" : "added"
+        } successfully.`,
+      });
+
+      // Refresh the employee list
+      await fetchEmployees();
+
+      setIsAddingEmployee(false);
+      setEditingEmployee(null);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        mobileNumber: "",
+        role: "employee",
+        status: "active",
+      });
+    } catch (error) {
+      console.error("Error saving employee:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save employee. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleEdit = (employee: Employee) => {
-    setEditingEmployee(employee)
-    setFormData({ name: employee.name, email: employee.email })
-    setIsAddingEmployee(true)
-  }
+    setEditingEmployee(employee);
+    setFormData({
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      email: employee.email,
+      mobileNumber: employee.mobileNumber,
+      role: employee.role,
+      status: employee.status,
+    });
+    setIsAddingEmployee(true);
+  };
 
-  const handleDelete = (employee: Employee) => {
-    setEmployees(employees.filter(emp => emp.id !== employee.id))
-    toast({
-      title: "Employee Deleted",
-      description: `${employee.name} has been removed from the system.`,
-      variant: "destructive",
-    })
-  }
+  const handleDelete = async (employee: Employee) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${employee.firstName} ${employee.lastName}?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE_URL}/user/${employee._id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete employee");
+
+      toast({
+        title: "Employee Deleted",
+        description: `${employee.firstName} ${employee.lastName} has been removed from the system.`,
+        variant: "destructive",
+      });
+
+      await fetchEmployees();
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete employee. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleCancel = () => {
-    setIsAddingEmployee(false)
-    setEditingEmployee(null)
-    setFormData({ name: '', email: '' })
-  }
+    setIsAddingEmployee(false);
+    setEditingEmployee(null);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      mobileNumber: "",
+      role: "employee",
+      status: "active",
+    });
+  };
 
-  const handleImportEmployees = (importedEmployees: Array<{ name: string; email: string }>) => {
-    const newEmployees: Employee[] = importedEmployees.map((emp) => ({
-      id: Date.now().toString() + Math.random(),
-      name: emp.name,
-      email: emp.email,
-      image: `/placeholder.svg?height=40&width=40&query=${emp.name}`,
-      createdAt: new Date().toISOString().split('T')[0],
-    }))
-    
-    setEmployees([...employees, ...newEmployees])
-    toast({
-      title: "Employees Imported",
-      description: `${newEmployees.length} employee(s) have been imported successfully.`,
-    })
-    setIsImportModalOpen(false)
-  }
+  const handleImportEmployees = async (
+    importedEmployees: Array<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      mobileNumber: string;
+    }>
+  ) => {
+    try {
+      const token = getAuthToken();
+
+      // Import employees one by one
+      const promises = importedEmployees.map((emp) =>
+        fetch(`${API_BASE_URL}/user`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...emp,
+            role: "employee",
+            status: "active",
+          }),
+        })
+      );
+
+      await Promise.all(promises);
+
+      toast({
+        title: "Employees Imported",
+        description: `${importedEmployees.length} employee(s) have been imported successfully.`,
+      });
+
+      setIsImportModalOpen(false);
+      await fetchEmployees();
+    } catch (error) {
+      console.error("Error importing employees:", error);
+      toast({
+        title: "Error",
+        description: "Failed to import employees. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Define columns for CommonTable
+  const columns = [
+    {
+      key: "firstName",
+      header: "First Name",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "lastName",
+      header: "Last Name",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "email",
+      header: "Email",
+      sortable: true,
+      searchable: true,
+      render: (row: Employee) => (
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-gray-400" />
+          <span>{row.email}</span>
+        </div>
+      ),
+    },
+    {
+      key: "mobileNumber",
+      header: "Mobile",
+      sortable: true,
+      searchable: true,
+      render: (row: Employee) => (
+        <div className="flex items-center gap-2">
+          <Phone className="w-4 h-4 text-gray-400" />
+          <span>{row.mobileNumber}</span>
+        </div>
+      ),
+    },
+    {
+      key: "role",
+      header: "Role",
+      sortable: true,
+      filterable: true,
+      render: (row: Employee) => (
+        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+          {row.role}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      filterable: true,
+      render: (row: Employee) => (
+        <span
+          className={`px-2 py-1 text-xs rounded-full capitalize ${
+            row.status === "active"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      sortable: false,
+      render: (row: Employee) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(row);
+            }}
+            className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors"
+            title="Edit employee"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row);
+            }}
+            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
+            title="Delete employee"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
-            <p className="text-gray-500 mt-1">Manage your employee records</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Employees
+            </h1>
+            <p className="text-gray-500 mt-1 text-sm sm:text-base">
+              Manage your employee records
+            </p>
           </div>
           {!isAddingEmployee && (
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={() => setIsImportModalOpen(true)}
-                className="bg-white hover:bg-gray-50 text-orange-600 border border-orange-600"
+                className="bg-white hover:bg-gray-50 text-orange-600 border border-orange-600 w-full sm:w-auto"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Import from Excel
               </Button>
               <Button
                 onClick={() => setIsAddingEmployee(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
+                className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Employee
@@ -152,26 +378,38 @@ export default function EmployeesPage() {
         {isAddingEmployee && (
           <Card>
             <CardHeader>
-              <CardTitle>{editingEmployee ? 'Edit Employee' : 'Add New Employee'}</CardTitle>
+              <CardTitle>
+                {editingEmployee ? "Edit Employee" : "Add New Employee"}
+              </CardTitle>
               <CardDescription>
-                {editingEmployee ? 'Update employee information' : 'Enter employee details to create a new record'}
+                {editingEmployee
+                  ? "Update employee information"
+                  : "Enter employee details to create a new record"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      First Name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
-                        id="name"
+                        id="firstName"
                         type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="John Doe"
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            firstName: e.target.value,
+                          })
+                        }
+                        placeholder="John"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                       />
@@ -179,7 +417,33 @@ export default function EmployeesPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Last Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        id="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, lastName: e.target.value })
+                        }
+                        placeholder="Doe"
+                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Email Address
                     </label>
                     <div className="relative">
@@ -188,12 +452,81 @@ export default function EmployeesPage() {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         placeholder="john.doe@company.com"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="mobileNumber"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Mobile Number
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        id="mobileNumber"
+                        type="tel"
+                        value={formData.mobileNumber}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            mobileNumber: e.target.value,
+                          })
+                        }
+                        placeholder="+1234567890"
+                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="role"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Role
+                    </label>
+                    <select
+                      id="role"
+                      value={formData.role}
+                      onChange={(e) =>
+                        setFormData({ ...formData, role: e.target.value })
+                      }
+                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="employee">Employee</option>
+                      <option value="manager">Manager</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="status"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Status
+                    </label>
+                    <select
+                      id="status"
+                      value={formData.status}
+                      onChange={(e) =>
+                        setFormData({ ...formData, status: e.target.value })
+                      }
+                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
                   </div>
                 </div>
 
@@ -202,7 +535,7 @@ export default function EmployeesPage() {
                     type="submit"
                     className="h-11 px-6 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
                   >
-                    {editingEmployee ? 'Update Employee' : 'Add Employee'}
+                    {editingEmployee ? "Update Employee" : "Add Employee"}
                   </button>
                   <button
                     type="button"
@@ -217,71 +550,29 @@ export default function EmployeesPage() {
           </Card>
         )}
 
-        {/* Employee Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Employee List</CardTitle>
-            <CardDescription>View and manage all employees</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">Employee</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">Email</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">Join Date</th>
-                    <th className="text-right py-4 px-4 text-sm font-semibold text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="text-center py-12 text-gray-500">
-                        No employees found. Add your first employee to get started.
-                      </td>
-                    </tr>
-                  ) : (
-                    employees.map((employee) => (
-                      <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={employee.image || "/placeholder.svg"}
-                              alt={employee.name}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                            <span className="font-medium text-gray-900">{employee.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">{employee.email}</td>
-                        <td className="py-4 px-4 text-gray-600">{employee.createdAt}</td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleEdit(employee)}
-                              className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors"
-                              title="Edit employee"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(employee)}
-                              className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
-                              title="Delete employee"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Employee Table using CommonTable */}
+        {/* <BootstrapWrapper> */}
+        <CommonTable
+          data={employees}
+          columns={columns}
+          loading={loading}
+          hover={true}
+          striped={true}
+          responsive={true}
+          perPage={10}
+          showPagination={true}
+          showSearch={true}
+          searchPlaceholder="Search employees..."
+          emptyMessage="No employees found. Add your first employee to get started."
+          emptyIcon="bi-people"
+          sortable={true}
+          showColumnToggle={true}
+          showPerPageSelector={true}
+          exportable={true}
+          selectableRows={false}
+          rowClickable={false}
+        />
+        {/* </BootstrapWrapper> */}
       </div>
 
       {/* Import Modal */}
@@ -291,5 +582,5 @@ export default function EmployeesPage() {
         onImport={handleImportEmployees}
       />
     </DashboardLayout>
-  )
+  );
 }
