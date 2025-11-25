@@ -2,11 +2,6 @@
 
 import { useState } from "react";
 import { Mail, Loader2 } from "lucide-react";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 interface EmailVerificationProps {
   email: string;
@@ -21,20 +16,64 @@ export function EmailVerification({
   onResend,
   isLoading = false,
 }: EmailVerificationProps) {
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
 
-  const handleComplete = (value: string) => {
-    setOtp(value);
+  const handleChange = (index: number, value: string) => {
+    // Only allow single digit
+    if (value.length > 1) return;
+
+    // Only allow numbers
+    if (!/^\d*$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
     setError("");
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+
+    if (!/^\d+$/.test(pastedData)) return;
+
+    const newOtp = [...otp];
+    pastedData.split("").forEach((char, index) => {
+      if (index < 6) newOtp[index] = char;
+    });
+    setOtp(newOtp);
+    setError("");
+
+    // Focus the last filled input or the next empty one
+    const nextEmptyIndex = newOtp.findIndex((val) => !val);
+    const focusIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex;
+    document.getElementById(`otp-${focusIndex}`)?.focus();
   };
 
   const handleVerify = () => {
-    if (otp.length !== 6) {
+    const otpString = otp.join("");
+    if (otpString.length !== 6) {
       setError("Please enter a complete 6-digit code");
       return;
     }
-    onVerify(otp);
+    onVerify(otpString);
   };
 
   return (
@@ -55,18 +94,22 @@ export function EmailVerification({
           <label className="block text-sm font-medium text-gray-900 mb-3">
             Enter verification code
           </label>
-          <InputOTP
-            maxLength={6}
-            value={otp}
-            onChange={handleComplete}
-            disabled={isLoading}
-          >
-            <InputOTPGroup className="gap-2">
-              {[0, 1, 2, 3, 4, 5].map((index) => (
-                <InputOTPSlot key={index} index={index} />
-              ))}
-            </InputOTPGroup>
-          </InputOTP>
+          <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                id={`otp-${index}`}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                disabled={isLoading}
+              />
+            ))}
+          </div>
         </div>
 
         {error && (
@@ -77,7 +120,7 @@ export function EmailVerification({
 
         <button
           onClick={handleVerify}
-          disabled={isLoading || otp.length !== 6}
+          disabled={isLoading || otp.join("").length !== 6}
           className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}

@@ -7,110 +7,88 @@ import {
   MapPin,
   Loader2,
   ArrowLeft,
-  Edit2,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 import { EmailVerification } from "@/components/emailVerification";
 import { LocationSetup } from "@/components/locationInput";
 import { useRouter } from "next/navigation";
 
+// API Functions
 const API = {
-  sendOTP: async (email: any) => {
-    // Uncomment when ready to use real API
-    /*
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/organization/send-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+  checkEmail: async (email: string) => {
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_BASE_URL
+      }/organization/check-email?email=${encodeURIComponent(email)}`
+    );
     return await response.json();
-    */
-    return { success: true };
-  },
-
-  verifyOTP: async (email: any, otp: any) => {
-    /*
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/organization/verify-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-    return await response.json();
-    */
-    return { success: true };
-  },
-
-  resendOTP: async (email: any) => {
-    /*
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/organization/resend-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    return await response.json();
-    */
-    return { success: true };
   },
 
   register: async (data: any) => {
-    /*
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/organization/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/organization/register`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }
+    );
     return await response.json();
-    */
-    return { success: true };
   },
 
-  completeRegistration: async (email: any, location: any) => {
-    /*
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/organization/complete-registration`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        officeLocation: {
-          latitude: parseFloat(location.latitude),
-          longitude: parseFloat(location.longitude),
-          address: location.address,
-          radius: 100,
-        },
-      }),
-    });
+  verifyOTP: async (email: string, otp: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/organization/verify-otp`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      }
+    );
     return await response.json();
-    */
-    return { success: true };
+  },
+
+  resendOTP: async (email: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/organization/resend-otp`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      }
+    );
+    return await response.json();
   },
 };
 
-// ============ MAIN REGISTRATION PAGE ============
+// Main Registration Page
 export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showOTP, setShowOTP] = useState(false);
   const [formData, setFormData] = useState({
+    email: "",
     companyName: "",
-    companyEmail: "",
     fullName: "",
     password: "",
     confirmPassword: "",
+    latitude: 0,
+    longitude: 0,
+    radius: 100,
+    officeAddress: "",
   });
-  const [tempEmail, setTempEmail] = useState("");
 
   const router = useRouter();
 
-  // Prevent page reload/close if user has started registration
+  // Prevent page reload
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Show warning only if user has entered any data or progressed beyond initial state
       if (
-        formData.companyEmail ||
+        formData.email ||
         formData.companyName ||
         formData.fullName ||
         formData.password ||
-        showOTP ||
         currentStep > 1
       ) {
         e.preventDefault();
@@ -121,30 +99,50 @@ export default function RegisterPage() {
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [formData, showOTP, currentStep]);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [formData, currentStep]);
 
   const handleInputChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 
-  const validateStep1 = () => {
-    if (!formData.companyEmail) {
+  // Step 1: Email validation and check
+  const handleEmailSubmit = async () => {
+    if (!formData.email) {
       setError("Please enter your email address");
-      return false;
+      return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       setError("Please enter a valid email address");
-      return false;
+      return;
     }
-    return true;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await API.checkEmail(formData.email);
+      if (result.exists) {
+        setError(
+          "This email is already registered. Please use a different email or sign in."
+        );
+      } else {
+        setTimeout(() => {
+          setCurrentStep(2);
+        }, 1000);
+      }
+    } catch (err) {
+      setError("Failed to verify email. Please try again.");
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    }
   };
 
-  const validateStep2 = () => {
+  // Step 2: Company details validation
+  const validateCompanyDetails = () => {
     if (
       !formData.companyName ||
       !formData.fullName ||
@@ -158,6 +156,19 @@ export default function RegisterPage() {
       setError("Password must be at least 8 characters long");
       return false;
     }
+
+    // Check for uppercase, lowercase, and number
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      setError(
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      );
+      return false;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return false;
@@ -165,131 +176,95 @@ export default function RegisterPage() {
     return true;
   };
 
-  const handleSendOTP = async () => {
-    if (!validateStep1()) return;
-
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call for demo
-    setTimeout(() => {
-      setTempEmail(formData.companyEmail);
-      setShowOTP(true);
-      setIsLoading(false);
-    }, 1000);
-
-    // Uncomment when ready to use real API
-    // try {
-    //   await API.sendOTP(formData.companyEmail);
-    //   setTempEmail(formData.companyEmail);
-    //   setShowOTP(true);
-    // } catch (error) {
-    //   setError("Failed to send verification code. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
-  };
-
-  const handleEditEmail = () => {
-    setShowOTP(false);
-    setTempEmail("");
-    setError("");
-  };
-
-  const handleVerifyOTP = async (otp: string) => {
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call for demo
-    setTimeout(() => {
-      setCurrentStep(2);
-      setIsLoading(false);
-    }, 1000);
-
-    // Uncomment when ready to use real API
-    // try {
-    //   await API.verifyOTP(tempEmail, otp);
-    //   setCurrentStep(2);
-    // } catch (error) {
-    //   setError("Invalid verification code. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
-  };
-
-  const handleResendOTP = async () => {
-    setIsLoading(true);
-
-    // Simulate API call for demo
-    setTimeout(() => {
-      alert("Verification code resent successfully!");
-      setIsLoading(false);
-    }, 1000);
-
-    // Uncomment when ready to use real API
-    // try {
-    //   await API.resendOTP(tempEmail);
-    //   alert("Verification code resent successfully!");
-    // } catch (error) {
-    //   setError("Failed to resend code. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
-  };
-
-  const handleRegisterDetails = async () => {
-    if (!validateStep2()) return;
-
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call for demo
-    setTimeout(() => {
+  const handleCompanyDetailsSubmit = () => {
+    if (validateCompanyDetails()) {
       setCurrentStep(3);
-      setIsLoading(false);
-    }, 1000);
-
-    // Uncomment when ready to use real API
-    // try {
-    //   await API.register({
-    //     companyName: formData.companyName,
-    //     companyEmail: tempEmail,
-    //     fullName: formData.fullName,
-    //     password: formData.password,
-    //   });
-    //   setCurrentStep(3);
-    // } catch (error) {
-    //   setError("Registration failed. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      setError("");
+    }
   };
 
-  const handleBackToStep2 = () => {
-    setCurrentStep(2);
-    setError("");
-  };
-
+  // Step 3: Location and registration
   const handleLocationComplete = async (location: any) => {
     setIsLoading(true);
     setError("");
 
-    // Simulate API call for demo
-    setTimeout(() => {
-      alert("Registration completed successfully!");
-      setIsLoading(false);
-      // In production: window.location.href = "/login";
-    }, 1000);
+    const registrationData = {
+      email: formData.email,
+      companyName: formData.companyName,
+      fullName: formData.fullName,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      longitude: parseFloat(location.longitude),
+      latitude: parseFloat(location.latitude),
+      radius: parseInt(location.radius),
+      officeAddress: location.address,
+    };
 
-    // Uncomment when ready to use real API
-    // try {
-    //   await API.completeRegistration(tempEmail, location);
-    //   window.location.href = "/login";
-    // } catch (error) {
-    //   setError("Failed to complete registration. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    try {
+      const result = await API.register(registrationData);
+
+      // Check if the response indicates an error
+      if (result.statusCode === 400 || result.error) {
+        const errorMessage = result.message
+          ? Array.isArray(result.message)
+            ? result.message.join(", ")
+            : result.message
+          : "Registration failed. Please try again.";
+        setError(errorMessage);
+        // Go back to step 2 so user can fix the password
+        setCurrentStep(2);
+        return;
+      }
+
+      // Store location data for later use
+      setFormData({
+        ...formData,
+        latitude: parseFloat(location.latitude),
+        longitude: parseFloat(location.longitude),
+        radius: parseInt(location.radius),
+        officeAddress: location.address,
+      });
+      setCurrentStep(4); // Move to OTP verification
+    } catch (err: any) {
+      const errorMessage =
+        err.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      // Go back to step 2 so user can fix the issue
+      setCurrentStep(2);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 4: OTP verification
+  const handleVerifyOTP = async (otp: string) => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      await API.verifyOTP(formData.email, otp);
+      setCurrentStep(5); // Move to success screen
+    } catch (err) {
+      setError("Invalid verification code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setIsLoading(true);
+    try {
+      await API.resendOTP(formData.email);
+      alert("Verification code resent successfully!");
+    } catch (err) {
+      setError("Failed to resend code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoToLogin = () => {
+    router.push("/login");
   };
 
   return (
@@ -315,25 +290,31 @@ export default function RegisterPage() {
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {currentStep === 1 && "Register Your Organization"}
-                {currentStep === 2 && "Complete Your Profile"}
+                {currentStep === 2 && "Company Details"}
                 {currentStep === 3 && "Setup Office Location"}
+                {currentStep === 4 && "Verify Your Email"}
+                {currentStep === 5 && "Registration Complete"}
               </h1>
-              <p className="text-gray-600">Step {currentStep} of 3</p>
+              {currentStep !== 5 && (
+                <p className="text-gray-600">Step {currentStep} of 4</p>
+              )}
             </div>
 
             {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex gap-2">
-                {[1, 2, 3].map((step) => (
-                  <div
-                    key={step}
-                    className={`flex-1 h-2 rounded-full transition-all ${
-                      currentStep >= step ? "bg-orange-600" : "bg-gray-200"
-                    }`}
-                  ></div>
-                ))}
+            {currentStep !== 5 && (
+              <div className="mb-8">
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`flex-1 h-2 rounded-full transition-all ${
+                        currentStep >= step ? "bg-orange-600" : "bg-gray-200"
+                      }`}
+                    ></div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Error Message */}
             {error && (currentStep === 1 || currentStep === 2) && (
@@ -342,75 +323,60 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 1 - Email and OTP Verification */}
+            {/* Step 1 - Email */}
             {currentStep === 1 && (
               <div className="space-y-4">
-                {!showOTP ? (
-                  <>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-900">
-                        Company Email <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        name="companyEmail"
-                        type="email"
-                        placeholder="company@example.com"
-                        value={formData.companyEmail}
-                        onChange={handleInputChange}
-                        className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
-                        disabled={isLoading}
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-900">
+                    Company Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="company@example.com"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    disabled={isLoading}
+                  />
+                </div>
 
-                    <button
-                      onClick={handleSendOTP}
-                      disabled={isLoading}
-                      className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
-                    >
-                      {isLoading && (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      )}
-                      {isLoading ? "Sending Code..." : "Send Verification Code"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {/* Email Display with Edit Button */}
-                    <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">
-                            Verification code sent to:
-                          </p>
-                          <p className="text-sm font-medium text-gray-900">
-                            {tempEmail}
-                          </p>
-                        </div>
-                        <button
-                          onClick={handleEditEmail}
-                          className="flex items-center gap-1 text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors"
-                          disabled={isLoading}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Edit
-                        </button>
-                      </div>
-                    </div>
+                <button
+                  onClick={handleEmailSubmit}
+                  disabled={isLoading}
+                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                >
+                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isLoading ? "Checking..." : "Continue"}
+                </button>
 
-                    <EmailVerification
-                      email={tempEmail}
-                      onVerify={handleVerifyOTP}
-                      onResend={handleResendOTP}
-                      isLoading={isLoading}
-                    />
-                  </>
-                )}
+                <div className="text-center pt-6">
+                  <span className="text-sm text-gray-600">
+                    Already have an account?{" "}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/login")}
+                    className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Step 2 - Company Details and Password */}
+            {/* Step 2 - Company Details */}
             {currentStep === 2 && (
               <div className="space-y-4">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-4 transition-colors"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Email
+                </button>
+
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-900">
                     Company Name <span className="text-red-500">*</span>
@@ -418,7 +384,7 @@ export default function RegisterPage() {
                   <input
                     name="companyName"
                     type="text"
-                    placeholder="Enter company name"
+                    placeholder="Acme Corporation"
                     value={formData.companyName}
                     onChange={handleInputChange}
                     className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
@@ -454,6 +420,9 @@ export default function RegisterPage() {
                     className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                     disabled={isLoading}
                   />
+                  <p className="text-xs text-gray-500">
+                    Must contain uppercase, lowercase, and a number
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -472,49 +441,135 @@ export default function RegisterPage() {
                 </div>
 
                 <button
-                  onClick={handleRegisterDetails}
+                  onClick={handleCompanyDetailsSubmit}
                   disabled={isLoading}
                   className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
                 >
-                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isLoading ? "Creating Account..." : "Continue"}
+                  Continue
                 </button>
               </div>
             )}
 
             {/* Step 3 - Location Setup */}
             {currentStep === 3 && (
-              <>
-                {/* Back Button */}
-                <button
-                  onClick={handleBackToStep2}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-6 transition-colors"
-                  disabled={isLoading}
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Company Details
-                </button>
-
-                <LocationSetup
-                  onComplete={handleLocationComplete}
-                  isLoading={isLoading}
-                />
-              </>
+              <LocationSetup
+                onComplete={handleLocationComplete}
+                onBack={() => setCurrentStep(2)}
+                isLoading={isLoading}
+              />
             )}
 
-            {/* Sign In Link */}
-            {currentStep === 1 && !showOTP && (
-              <div className="text-center pt-6">
-                <span className="text-sm text-gray-600">
-                  Already have an account?{" "}
-                </span>
+            {/* Step 4 - OTP Verification */}
+            {currentStep === 4 && (
+              <EmailVerification
+                email={formData.email}
+                onVerify={handleVerifyOTP}
+                onResend={handleResendOTP}
+                isLoading={isLoading}
+              />
+            )}
+
+            {/* Step 5 - Success Screen */}
+            {currentStep === 5 && (
+              <div className="text-center py-8">
+                {/* Success Animation */}
+                <div className="mb-8 relative">
+                  <div className="w-40 h-40 mx-auto bg-gradient-to-br from-green-100 to-green-50 rounded-full flex items-center justify-center relative">
+                    <div className="w-32 h-32 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                      <CheckCircle2
+                        className="w-16 h-16 text-white"
+                        strokeWidth={2.5}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Success Message */}
+                <div className="mb-8 space-y-3">
+                  <h2 className="text-3xl font-bold text-gray-900">
+                    Congratulations!
+                  </h2>
+                  <p className="text-base text-gray-600 max-w-md mx-auto">
+                    Your organization has been successfully registered
+                  </p>
+                </div>
+
+                {/* Registration Details Card */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 mb-8 border border-orange-200 shadow-sm">
+                  <div className="space-y-4 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Building2 className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Company Name
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {formData.companyName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <User className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500 mb-1">Admin Name</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {formData.fullName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Mail className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Email Address
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {formData.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <MapPin className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Office Location
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 line-clamp-2">
+                          {formData.officeAddress || "Location set"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Next Steps Info */}
+                <div className="bg-blue-50 rounded-xl p-4 mb-8 border border-blue-200">
+                  <p className="text-sm text-blue-800 font-medium mb-2">
+                    🎉 What's Next?
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    You can now log in to your account and start managing your
+                    organization's HR operations
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
                 <button
-                  type="button"
-                  onClick={() => router.push("/login")}
-                  className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
-                  disabled={isLoading}
+                  onClick={handleGoToLogin}
+                  className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
-                  Sign in
+                  Continue to Login
                 </button>
               </div>
             )}
@@ -534,28 +589,32 @@ export default function RegisterPage() {
         <div className="relative z-10 text-center text-white max-w-lg">
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm mb-6">
-              {currentStep === 1 && (
-                <Mail className="w-16 h-16 text-orange-500" />
-              )}
-              {currentStep === 2 && (
-                <Building2 className="w-16 h-16 text-orange-500" />
-              )}
-              {currentStep === 3 && (
-                <MapPin className="w-16 h-16 text-orange-500" />
+              {currentStep === 1 && <Mail className="w-16 h-16 text-white" />}
+              {currentStep === 2 && <User className="w-16 h-16 text-white" />}
+              {currentStep === 3 && <MapPin className="w-16 h-16 text-white" />}
+              {currentStep === 4 && <Mail className="w-16 h-16 text-white" />}
+              {currentStep === 5 && (
+                <CheckCircle2 className="w-16 h-16 text-white" />
               )}
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              {currentStep === 1 && "Verify Your Email"}
+              {currentStep === 1 && "Let's Get Started"}
               {currentStep === 2 && "Tell Us About Your Company"}
-              {currentStep === 3 && "Almost There!"}
+              {currentStep === 3 && "Setup Your Office"}
+              {currentStep === 4 && "Almost Done!"}
+              {currentStep === 5 && "Welcome Aboard!"}
             </h2>
             <p className="text-lg text-white text-opacity-90">
               {currentStep === 1 &&
-                "Enter your company email to get started. We'll send you a verification code to ensure your account security."}
+                "Enter your company email to begin the registration process."}
               {currentStep === 2 &&
-                "Provide your company details and create a secure password to complete your profile."}
+                "Provide your company details and create a secure password."}
               {currentStep === 3 &&
                 "Set up your office location for accurate attendance tracking and geofencing."}
+              {currentStep === 4 &&
+                "Verify your email address to complete the registration."}
+              {currentStep === 5 &&
+                "Your journey to streamlined HR management starts now. Let's transform how you manage your workforce!"}
             </p>
           </div>
         </div>

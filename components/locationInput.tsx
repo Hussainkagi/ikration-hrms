@@ -1,27 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin, Loader2, ArrowLeft } from "lucide-react";
 
 interface LocationData {
   latitude: string;
   longitude: string;
   address: string;
+  radius: string;
 }
 
 interface LocationSetupProps {
   onComplete: (location: LocationData) => void;
+  onBack: () => void;
   isLoading?: boolean;
 }
 
 export function LocationSetup({
   onComplete,
+  onBack,
   isLoading = false,
 }: LocationSetupProps) {
   const [location, setLocation] = useState<LocationData>({
     latitude: "",
     longitude: "",
     address: "",
+    radius: "100",
   });
   const [error, setError] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
@@ -56,11 +60,28 @@ export function LocationSetup({
       setError("Please provide location coordinates and address");
       return;
     }
+
+    const radiusNum = parseInt(location.radius);
+    if (!location.radius || radiusNum < 10) {
+      setError("Radius must be at least 10 meters");
+      return;
+    }
+
     onComplete(location);
   };
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+        disabled={isLoading}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Company Details
+      </button>
+
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <MapPin className="w-8 h-8 text-orange-600" />
@@ -143,13 +164,34 @@ export function LocationSetup({
           />
         </div>
 
+        {/* NEW: Radius Field */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-900">
+            Geofence Radius (meters) <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            placeholder="100"
+            value={location.radius}
+            onChange={(e) => {
+              setLocation({ ...location, radius: e.target.value });
+              setError("");
+            }}
+            className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+            disabled={isLoading}
+          />
+          <p className="text-xs text-gray-500">
+            Set the radius for geofencing (minimum 10 meters)
+          </p>
+        </div>
+
         <button
           onClick={handleSubmit}
           disabled={isLoading}
           className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isLoading ? "Completing..." : "Complete Registration"}
+          {isLoading ? "Processing..." : "Continue to Verification"}
         </button>
       </div>
     </div>

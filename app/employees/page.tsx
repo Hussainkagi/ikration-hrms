@@ -17,7 +17,7 @@ import ImportEmployeeModal from "@/components/import-employee-modal";
 import BootstrapWrapper from "@/components/bootstrapWrapper";
 
 interface Employee {
-  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -88,10 +88,14 @@ export default function EmployeesPage() {
     try {
       const token = getAuthToken();
       const url = editingEmployee
-        ? `${API_BASE_URL}/user/${editingEmployee._id}`
+        ? `${API_BASE_URL}/user/${editingEmployee.id}`
         : `${API_BASE_URL}/user`;
 
       const method = editingEmployee ? "PUT" : "POST";
+
+      // Prepare data - exclude role when editing
+      const { role, ...dataWithoutRole } = formData;
+      const dataToSend = editingEmployee ? dataWithoutRole : formData;
 
       const response = await fetch(url, {
         method,
@@ -99,7 +103,7 @@ export default function EmployeesPage() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) throw new Error("Failed to save employee");
@@ -158,7 +162,7 @@ export default function EmployeesPage() {
 
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_BASE_URL}/user/${employee._id}`, {
+      const response = await fetch(`${API_BASE_URL}/user/${employee.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

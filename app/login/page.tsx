@@ -67,7 +67,9 @@ export default function LoginPage() {
         }
 
         // Redirect to dashboard
-        window.location.href = "/dashboard";
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
       } else {
         setError(
           data.message || "Login failed. Please check your credentials."
@@ -77,7 +79,9 @@ export default function LoginPage() {
       console.error("Login error:", error);
       setError("Network error. Please check your connection and try again.");
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
     }
   };
 
