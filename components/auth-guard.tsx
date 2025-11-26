@@ -11,31 +11,52 @@ interface AuthGuardProps {
 
 export function AuthGuard({
   children,
-  publicRoutes = ["/login", "/register", "/verification"],
+  publicRoutes = ["/login", "/register", "/setup-password"],
 }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const isPublicRoute = publicRoutes.includes(pathname);
 
+  // Routes that employees cannot access
+  const employeeRestrictedRoutes = ["/dashboard", "/employees"];
+
   useEffect(() => {
     if (!isLoading) {
+      // Not authenticated - redirect to login
       if (!isAuthenticated && !isPublicRoute) {
-        // User is not authenticated and trying to access protected route
         router.push("/login");
-      } else if (isAuthenticated && isPublicRoute) {
-        // User is authenticated and trying to access login/register
-        router.push("/dashboard");
+        return;
+      }
+
+      // Authenticated but on public route - redirect to appropriate page
+      if (isAuthenticated && isPublicRoute) {
+        if (user?.role === "employee") {
+          router.push("/tracking");
+        } else {
+          router.push("/dashboard");
+        }
+        return;
+      }
+
+      // Employee trying to access restricted routes
+      if (
+        isAuthenticated &&
+        user?.role === "employee" &&
+        employeeRestrictedRoutes.includes(pathname)
+      ) {
+        router.push("/tracking");
+        return;
       }
     }
-  }, [isAuthenticated, isLoading, isPublicRoute, router, pathname]);
+  }, [isAuthenticated, isLoading, isPublicRoute, router, pathname, user]);
 
   // Show loading spinner while checking auth
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600" />
       </div>
     );
   }
@@ -43,7 +64,8 @@ export function AuthGuard({
   // Show nothing while redirecting
   if (
     (!isAuthenticated && !isPublicRoute) ||
-    (isAuthenticated && isPublicRoute)
+    (isAuthenticated && isPublicRoute) ||
+    (user?.role === "employee" && employeeRestrictedRoutes.includes(pathname))
   ) {
     return null;
   }

@@ -11,7 +11,14 @@ import {
 interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  mobileNumber: string;
+  role: "employee" | "admin" | "manager"; // Add other roles as needed
+  status: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {
@@ -25,29 +32,56 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUserFromLocalStorage = () => {
+  const fetchUserFromAPI = async () => {
     const token = localStorage.getItem("accessToken");
 
-    if (token) {
-      // Optional: decode user from token if JWT
-      // OR store user JSON separately in localStorage
-      const storedUser: any = localStorage.getItem("accessToken");
-      if (storedUser) {
-        setUser(storedUser);
-      }
-    } else {
+    if (!token) {
       setUser(null);
+      setIsLoading(false);
+      return;
     }
 
-    setIsLoading(false);
+    try {
+      // Get user ID from token or localStorage
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${BASE_URL}/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user");
+      }
+
+      const userData = await response.json();
+      setUser(userData);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      // Clear invalid token
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userId");
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchUserFromLocalStorage();
+    fetchUserFromAPI();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -63,21 +97,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { user: userData, accessToken } = await response.json();
 
-    // Save token + user data
+    // Save token and user ID
     localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("userId", userData.id);
 
     setUser(userData);
   };
 
   const logout = async () => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
     setUser(null);
   };
 
   const refreshUser = async () => {
-    fetchUserFromLocalStorage();
+    await fetchUserFromAPI();
   };
 
   return (

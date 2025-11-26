@@ -13,36 +13,64 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Employees", href: "/employees", icon: Users },
-  { name: "Tracking", href: "/tracking", icon: Clock },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    roles: ["admin", "manager"],
+  },
+  {
+    name: "Employees",
+    href: "/employees",
+    icon: Users,
+    roles: ["admin", "manager"],
+  },
+  {
+    name: "Tracking",
+    href: "/tracking",
+    icon: Clock,
+    roles: ["admin", "manager", "employee"],
+  },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
-  const handleLogout = () => {
-    // Remove access token from localStorage
-    localStorage.removeItem("accessToken");
+  const handleLogout = async () => {
+    try {
+      await logout();
 
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
 
-    // Close dialog and reload the page
-    setIsLogoutDialogOpen(false);
-    window.location.reload();
+      setIsLogoutDialogOpen(false);
+      router.push("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const openLogoutDialog = () => {
     setIsLogoutDialogOpen(true);
   };
+
+  // Filter navigation based on user role
+  const filteredNavigation = navigation.filter(
+    (item) => user?.role && item.roles.includes(user.role)
+  );
 
   return (
     <>
@@ -62,7 +90,7 @@ export default function Sidebar() {
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
               Main Navigation
             </div>
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
@@ -123,7 +151,7 @@ export default function Sidebar() {
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">
                 Main Navigation
               </div>
-              {navigation.map((item) => {
+              {filteredNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
                 return (
