@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Mail, User, Phone, Upload } from "lucide-react";
 import ImportEmployeeModal from "@/components/import-employee-modal";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
 interface Employee {
   id: string;
@@ -43,6 +44,15 @@ export default function EmployeesPage() {
     status: "active",
   });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    employee: Employee | null;
+    isDeleting: boolean;
+  }>({
+    isOpen: false,
+    employee: null,
+    isDeleting: false,
+  });
 
   // Get token from localStorage
   const getAuthToken = () => {
@@ -131,33 +141,48 @@ export default function EmployeesPage() {
     router.push(`/employees/${employee.id}`);
   };
 
-  const handleDelete = async (employee: Employee) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${employee.firstName} ${employee.lastName}?`
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (employee: Employee) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      employee: employee,
+      isDeleting: false,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.employee) return;
+
+    setDeleteConfirmation((prev) => ({ ...prev, isDeleting: true }));
 
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_BASE_URL}/user/${employee.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/user/${deleteConfirmation.employee.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to delete employee");
 
-      toast({
-        title: "Employee Deleted",
-        description: `${employee.firstName} ${employee.lastName} has been removed from the system.`,
-        variant: "destructive",
-      });
+      setTimeout(async () => {
+        toast({
+          title: "Employee Deleted",
+          description: `${deleteConfirmation.employee?.firstName} ${deleteConfirmation.employee?.lastName} has been removed from the system.`,
+          variant: "destructive",
+        });
+        await fetchEmployees();
+        setDeleteConfirmation({
+          isOpen: false,
+          employee: null,
+          isDeleting: false,
+        });
+      }, 800);
 
-      await fetchEmployees();
+      // Close modal
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast({
@@ -165,6 +190,7 @@ export default function EmployeesPage() {
         description: "Failed to delete employee. Please try again.",
         variant: "destructive",
       });
+      setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
@@ -188,42 +214,42 @@ export default function EmployeesPage() {
       mobileNumber: string;
     }>
   ) => {
-    try {
-      const token = getAuthToken();
+    const token = getAuthToken();
 
-      // Import employees one by one
-      const promises = importedEmployees.map((emp) =>
-        fetch(`${API_BASE_URL}/user`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...emp,
-            role: "employee",
-            status: "active",
-          }),
-        })
-      );
+    // Import employees one by one
+    const promises = importedEmployees.map((emp) =>
+      fetch(`${API_BASE_URL}/user`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...emp,
+          role: "employee",
+          status: "active",
+        }),
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to import ${emp.firstName} ${emp.lastName}`);
+        }
+        return response;
+      })
+    );
 
-      await Promise.all(promises);
+    // Wait for all imports to complete
+    await Promise.all(promises);
 
-      toast({
-        title: "Employees Imported",
-        description: `${importedEmployees.length} employee(s) have been imported successfully.`,
-      });
+    // Show success message
+    toast({
+      title: "Employees Imported",
+      description: `${importedEmployees.length} employee(s) have been imported successfully.`,
+    });
 
-      setIsImportModalOpen(false);
-      await fetchEmployees();
-    } catch (error) {
-      console.error("Error importing employees:", error);
-      toast({
-        title: "Error",
-        description: "Failed to import employees. Please try again.",
-        variant: "destructive",
-      });
-    }
+    // Refresh the employee list
+    await fetchEmployees();
+
+    // Modal will close automatically after this completes successfully
   };
 
   // Define columns for CommonTable
@@ -557,6 +583,25 @@ export default function EmployeesPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImportEmployees}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            employee: null,
+            isDeleting: false,
+          })
+        }
+        onConfirm={confirmDelete}
+        employeeName={
+          deleteConfirmation.employee
+            ? `${deleteConfirmation.employee.firstName} ${deleteConfirmation.employee.lastName}`
+            : ""
+        }
+        isDeleting={deleteConfirmation.isDeleting}
       />
     </DashboardLayout>
   );

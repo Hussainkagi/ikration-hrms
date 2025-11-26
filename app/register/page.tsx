@@ -237,15 +237,28 @@ export default function RegisterPage() {
   };
 
   // Step 4: OTP verification
+  // Step 4: OTP verification
   const handleVerifyOTP = async (otp: string) => {
     setIsLoading(true);
     setError("");
 
     try {
-      await API.verifyOTP(formData.email, otp);
-      setCurrentStep(5); // Move to success screen
-    } catch (err) {
-      setError("Invalid verification code. Please try again.");
+      const result = await API.verifyOTP(formData.email, otp);
+
+      // Check if the response indicates an error
+      if (result.statusCode === 400 || result.error) {
+        const errorMessage =
+          result.message || "Invalid verification code. Please try again.";
+        setError(errorMessage);
+        return; // Don't proceed to success screen
+      }
+
+      // Only move to success screen if verification was successful
+      setCurrentStep(5);
+    } catch (err: any) {
+      const errorMessage =
+        err.message || "Invalid verification code. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -461,12 +474,19 @@ export default function RegisterPage() {
 
             {/* Step 4 - OTP Verification */}
             {currentStep === 4 && (
-              <EmailVerification
-                email={formData.email}
-                onVerify={handleVerifyOTP}
-                onResend={handleResendOTP}
-                isLoading={isLoading}
-              />
+              <>
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+                <EmailVerification
+                  email={formData.email}
+                  onVerify={handleVerifyOTP}
+                  onResend={handleResendOTP}
+                  isLoading={isLoading}
+                />
+              </>
             )}
 
             {/* Step 5 - Success Screen */}

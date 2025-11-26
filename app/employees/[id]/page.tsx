@@ -113,12 +113,13 @@ export default function EmployeeEditPage() {
         throw new Error(errorData?.message || "Failed to update employee");
       }
 
-      toast({
-        title: "Employee Updated",
-        description: `${formData.firstName} ${formData.lastName} has been updated successfully.`,
-      });
-
-      router.push("/employees");
+      setTimeout(() => {
+        toast({
+          title: "Employee Updated",
+          description: `${formData.firstName} ${formData.lastName} has been updated successfully.`,
+        });
+        router.push("/employees");
+      }, 800);
     } catch (error: any) {
       console.error("Error updating employee:", error);
 
@@ -129,7 +130,9 @@ export default function EmployeeEditPage() {
         variant: "destructive",
       });
     } finally {
-      setSaving(false);
+      setTimeout(() => {
+        setSaving(false);
+      }, 800);
     }
   };
 
