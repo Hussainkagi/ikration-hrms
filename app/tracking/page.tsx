@@ -10,8 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { LogIn, LogOut, Clock, Calendar, Camera, X, User } from "lucide-react";
+import {
+  LogIn,
+  LogOut,
+  Clock,
+  Calendar,
+  Camera,
+  X,
+  User,
+  Upload,
+  Image as ImageIcon,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import Employeetracking from "@/components/EmployeeTacking";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
@@ -34,8 +45,12 @@ export default function TrackingPage() {
   >(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [imageSource, setImageSource] = useState<"camera" | "upload" | null>(
+    null
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -58,6 +73,34 @@ export default function TrackingPage() {
   const openCameraModal = (type: "check-in" | "check-out") => {
     setShowCameraModal(type);
     setCapturedImage(null);
+    setImageSource(null);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Invalid File",
+          description: "Please select an image file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setCapturedImage(result);
+        setImageSource("upload");
+        stopCamera(); // Stop camera if it was active
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const startCamera = async () => {
@@ -101,6 +144,7 @@ export default function TrackingPage() {
         ctx.drawImage(videoRef.current, 0, 0);
         const imageData = canvas.toDataURL("image/jpeg");
         setCapturedImage(imageData);
+        setImageSource("camera");
         stopCamera();
       }
     }
@@ -108,13 +152,14 @@ export default function TrackingPage() {
 
   const retakePhoto = () => {
     setCapturedImage(null);
-    startCamera();
+    setImageSource(null);
   };
 
   const closeCameraModal = () => {
     stopCamera();
     setShowCameraModal(null);
     setCapturedImage(null);
+    setImageSource(null);
   };
 
   const getCurrentLocation = (): Promise<{
@@ -308,19 +353,20 @@ export default function TrackingPage() {
             </div>
 
             {/* Check-in/out Buttons */}
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <button
                 onClick={() => openCameraModal("check-in")}
                 disabled={loading}
-                className="flex-1 h-14 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 h-14 py-5 sm:py-0 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <LogIn className="w-5 h-5" />
                 Check In
               </button>
+
               <button
                 onClick={() => openCameraModal("check-out")}
                 disabled={loading}
-                className="flex-1 h-14 bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 h-14 py-5 sm:py-0 bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <LogOut className="w-5 h-5" />
                 Check Out
@@ -330,7 +376,7 @@ export default function TrackingPage() {
         </Card>
 
         {/* Tracking History */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Tracking History</CardTitle>
             <CardDescription>
@@ -391,10 +437,21 @@ export default function TrackingPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
+        {user?.role === "admin" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Employees Tracking History</CardTitle>
+              <CardDescription>check-in and check-out records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Employeetracking />
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Camera Modal */}
+      {/* Camera/Upload Modal */}
       {showCameraModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
@@ -407,7 +464,7 @@ export default function TrackingPage() {
                 <p className="text-sm text-gray-500 mt-1">
                   {capturedImage
                     ? "Review your photo"
-                    : "Capture a selfie (optional)"}
+                    : "Capture or upload a selfie (optional)"}
                 </p>
               </div>
               <button
@@ -436,22 +493,41 @@ export default function TrackingPage() {
                   />
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                    <Camera className="w-16 h-16 mb-4 opacity-50" />
-                    <p className="text-sm opacity-75">Camera not started</p>
+                    <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="text-sm opacity-75">Choose an option below</p>
                   </div>
                 )}
               </div>
 
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
               {/* Action Buttons */}
               <div className="mt-6 space-y-3">
                 {!capturedImage && !isCameraActive && (
-                  <button
-                    onClick={startCamera}
-                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Camera className="w-5 h-5" />
-                    Start Camera
-                  </button>
+                  <>
+                    <button
+                      onClick={startCamera}
+                      className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Camera className="w-5 h-5" />
+                      Open Camera
+                    </button>
+
+                    <button
+                      onClick={triggerFileUpload}
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Upload className="w-5 h-5" />
+                      Upload Photo
+                    </button>
+                  </>
                 )}
 
                 {isCameraActive && !capturedImage && (
@@ -471,7 +547,7 @@ export default function TrackingPage() {
                       disabled={loading}
                       className="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Retake
+                      {imageSource === "camera" ? "Retake" : "Change"}
                     </button>
                     <button
                       onClick={() => handleCheckInOut(false)}
