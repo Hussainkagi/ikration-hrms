@@ -212,7 +212,7 @@ export default function LoginPage() {
               </button>
 
               {/* Sign in with Google */}
-              <button
+              {/* <button
                 type="button"
                 className="w-full h-11 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 bg-white flex items-center justify-center gap-2 cursor-pointer"
                 disabled={isLoading}
@@ -240,7 +240,7 @@ export default function LoginPage() {
                   />
                 </svg>
                 Sign in with Google
-              </button>
+              </button> */}
 
               {/* Sign Up Link */}
               <div className="text-center pt-2">

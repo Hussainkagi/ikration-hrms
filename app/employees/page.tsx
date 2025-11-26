@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/dashboard-layout";
 import CommonTable from "@/components/ui/commonTable";
 import {
@@ -14,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Mail, User, Phone, Upload } from "lucide-react";
 import ImportEmployeeModal from "@/components/import-employee-modal";
-import BootstrapWrapper from "@/components/bootstrapWrapper";
 
 interface Employee {
   id: string;
@@ -30,10 +30,10 @@ interface Employee {
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function EmployeesPage() {
+  const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -87,39 +87,27 @@ export default function EmployeesPage() {
 
     try {
       const token = getAuthToken();
-      const url = editingEmployee
-        ? `${API_BASE_URL}/user/${editingEmployee.id}`
-        : `${API_BASE_URL}/user`;
 
-      const method = editingEmployee ? "PUT" : "POST";
-
-      // Prepare data - exclude role when editing
-      const { role, ...dataWithoutRole } = formData;
-      const dataToSend = editingEmployee ? dataWithoutRole : formData;
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(`${API_BASE_URL}/user`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Failed to save employee");
+      if (!response.ok) throw new Error("Failed to add employee");
 
       toast({
-        title: editingEmployee ? "Employee Updated" : "Employee Added",
-        description: `${formData.firstName} ${formData.lastName} has been ${
-          editingEmployee ? "updated" : "added"
-        } successfully.`,
+        title: "Employee Added",
+        description: `${formData.firstName} ${formData.lastName} has been added successfully.`,
       });
 
       // Refresh the employee list
       await fetchEmployees();
 
       setIsAddingEmployee(false);
-      setEditingEmployee(null);
       setFormData({
         firstName: "",
         lastName: "",
@@ -139,16 +127,8 @@ export default function EmployeesPage() {
   };
 
   const handleEdit = (employee: Employee) => {
-    setEditingEmployee(employee);
-    setFormData({
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-      email: employee.email,
-      mobileNumber: employee.mobileNumber,
-      role: employee.role,
-      status: employee.status,
-    });
-    setIsAddingEmployee(true);
+    // Redirect to edit page
+    router.push(`/employees/${employee.id}`);
   };
 
   const handleDelete = async (employee: Employee) => {
@@ -190,7 +170,6 @@ export default function EmployeesPage() {
 
   const handleCancel = () => {
     setIsAddingEmployee(false);
-    setEditingEmployee(null);
     setFormData({
       firstName: "",
       lastName: "",
@@ -378,17 +357,13 @@ export default function EmployeesPage() {
           )}
         </div>
 
-        {/* Add/Edit Employee Form */}
+        {/* Add Employee Form */}
         {isAddingEmployee && (
           <Card>
             <CardHeader>
-              <CardTitle>
-                {editingEmployee ? "Edit Employee" : "Add New Employee"}
-              </CardTitle>
+              <CardTitle>Add New Employee</CardTitle>
               <CardDescription>
-                {editingEmployee
-                  ? "Update employee information"
-                  : "Enter employee details to create a new record"}
+                Enter employee details to create a new record
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -539,7 +514,7 @@ export default function EmployeesPage() {
                     type="submit"
                     className="h-11 px-6 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
                   >
-                    {editingEmployee ? "Update Employee" : "Add Employee"}
+                    Add Employee
                   </button>
                   <button
                     type="button"
@@ -554,8 +529,7 @@ export default function EmployeesPage() {
           </Card>
         )}
 
-        {/* Employee Table using CommonTable */}
-        {/* <BootstrapWrapper> */}
+        {/* Employee Table */}
         <CommonTable
           data={employees}
           columns={columns}
@@ -576,7 +550,6 @@ export default function EmployeesPage() {
           selectableRows={false}
           rowClickable={false}
         />
-        {/* </BootstrapWrapper> */}
       </div>
 
       {/* Import Modal */}
