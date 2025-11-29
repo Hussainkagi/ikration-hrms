@@ -1,20 +1,29 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, Upload, FileSpreadsheet, Download, Loader2 } from "lucide-react";
+import {
+  X,
+  Upload,
+  FileSpreadsheet,
+  Download,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 
 interface ImportEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (
-    employees: Array<{
-      firstName: string;
-      lastName: string;
+  onImport: (file: File) => Promise<{
+    success: number;
+    failed: number;
+    errors: Array<{
+      row: number;
       email: string;
-      mobileNumber: string;
-    }>
-  ) => Promise<void>;
+      error: string;
+    }>;
+  }>;
 }
 
 export default function ImportEmployeeModal({
@@ -25,10 +34,15 @@ export default function ImportEmployeeModal({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [validationStatus, setValidationStatus] = useState<
-    "success" | "error" | null
-  >(null);
-  const [validationMessage, setValidationMessage] = useState<string>("");
+  const [importResult, setImportResult] = useState<{
+    success: number;
+    failed: number;
+    errors: Array<{
+      row: number;
+      email: string;
+      error: string;
+    }>;
+  } | null>(null);
   const [previewData, setPreviewData] = useState<
     Array<{
       firstName: string;
@@ -59,8 +73,7 @@ export default function ImportEmployeeModal({
       }
       // Reset previous state
       setPreviewData([]);
-      setValidationStatus(null);
-      setValidationMessage("");
+      setImportResult(null);
       setFile(selectedFile);
       processFile(selectedFile);
     }
@@ -69,8 +82,7 @@ export default function ImportEmployeeModal({
   const handleRemoveFile = () => {
     setFile(null);
     setPreviewData([]);
-    setValidationStatus(null);
-    setValidationMessage("");
+    setImportResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -133,16 +145,22 @@ export default function ImportEmployeeModal({
   };
 
   const handleImport = async () => {
-    if (previewData.length > 0) {
+    if (file && previewData.length > 0) {
       setIsImporting(true);
+      setImportResult(null);
       try {
-        await onImport(previewData);
-        // Only close after successful import
-        handleClose();
-      } catch (error) {
-        // Keep modal open on error
-        console.error("Import failed:", error);
+        const result = await onImport(file);
+        setImportResult(result);
         setIsImporting(false);
+
+        // Don't close modal automatically - let user review results
+      } catch (error) {
+        setIsImporting(false);
+        toast({
+          title: "Import Failed",
+          description: "An error occurred during import. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -155,8 +173,7 @@ export default function ImportEmployeeModal({
 
     setFile(null);
     setPreviewData([]);
-    setValidationStatus(null);
-    setValidationMessage("");
+    setImportResult(null);
     setIsImporting(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -219,234 +236,263 @@ export default function ImportEmployeeModal({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
-          {/* Download Template Button */}
-          <div className="mb-6">
-            <button
-              onClick={downloadTemplate}
-              disabled={isImporting}
-              className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" />
-              Download Template
-            </button>
-            <p className="text-sm text-gray-500 mt-1">
-              Download a sample Excel template with the required format
-            </p>
-          </div>
-
-          {/* File Upload Area */}
-          <div className="space-y-3">
-            <div
-              onClick={() => !isImporting && fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isImporting ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-              } ${
-                validationStatus === "error"
-                  ? "border-red-300 bg-red-50"
-                  : validationStatus === "success"
-                  ? "border-green-300 bg-green-50"
-                  : "border-gray-300 bg-gray-50 hover:border-orange-600"
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileChange}
-                disabled={isImporting}
-                className="hidden"
-              />
-              <div className="flex flex-col items-center gap-3">
-                {file ? (
-                  <>
-                    <FileSpreadsheet
-                      className={`w-12 h-12 ${
-                        validationStatus === "error"
-                          ? "text-red-600"
-                          : validationStatus === "success"
-                          ? "text-green-600"
-                          : "text-orange-600"
-                      }`}
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">{file.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {isImporting ? "Importing..." : "Click to change file"}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-12 h-12 text-gray-400" />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Click to upload Excel file
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Supports .xlsx, .xls, and .csv files
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Remove File Button */}
-            {file && !isImporting && (
-              <button
-                onClick={handleRemoveFile}
-                className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Remove File
-              </button>
-            )}
-          </div>
-
-          {/* Importing Status */}
-          {isImporting && (
-            <div className="mt-4 p-4 rounded-lg flex items-start gap-3 bg-blue-50 border border-blue-200">
-              <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-blue-900">
-                  Importing Employees...
-                </p>
-                <p className="text-sm mt-1 text-blue-700">
-                  Please wait while we add {previewData.length} employee
-                  {previewData.length !== 1 ? "s" : ""} to the system. Do not
-                  close this window.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Validation Message */}
-          {validationStatus && !isImporting && (
-            <div
-              className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
-                validationStatus === "error"
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-green-50 border border-green-200"
-              }`}
-            >
-              <div
-                className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
-                  validationStatus === "error" ? "bg-red-100" : "bg-green-100"
-                }`}
-              >
-                {validationStatus === "error" ? (
-                  <X className="w-3 h-3 text-red-600" />
-                ) : (
-                  <svg
-                    className="w-3 h-3 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </div>
-              <div>
-                <p
-                  className={`font-medium ${
-                    validationStatus === "error"
-                      ? "text-red-900"
-                      : "text-green-900"
-                  }`}
-                >
-                  {validationStatus === "error"
-                    ? "Validation Error"
-                    : "Success"}
-                </p>
-                <p
-                  className={`text-sm mt-1 ${
-                    validationStatus === "error"
-                      ? "text-red-700"
-                      : "text-green-700"
-                  }`}
-                >
-                  {validationMessage}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Preview Data */}
-          {previewData.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold text-gray-900 mb-3">
-                Preview ({previewData.length} employee
-                {previewData.length !== 1 ? "s" : ""})
-              </h3>
-              <div className="border border-gray-200 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                        First Name
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                        Last Name
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                        Email
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                        Mobile
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.slice(0, 10).map((emp, idx) => (
-                      <tr key={idx} className="border-t border-gray-100">
-                        <td className="py-2 px-4 text-sm text-gray-900">
-                          {emp.firstName}
-                        </td>
-                        <td className="py-2 px-4 text-sm text-gray-900">
-                          {emp.lastName}
-                        </td>
-                        <td className="py-2 px-4 text-sm text-gray-600">
-                          {emp.email}
-                        </td>
-                        <td className="py-2 px-4 text-sm text-gray-600">
-                          {emp.mobileNumber || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {previewData.length > 10 && (
-                  <div className="text-center py-2 text-sm text-gray-500 bg-gray-50">
-                    ... and {previewData.length - 10} more
+          {/* Import Results */}
+          {importResult && (
+            <div className="mb-6 space-y-3">
+              {/* Success Summary */}
+              {importResult.success > 0 && (
+                <div className="p-4 rounded-lg flex items-start gap-3 bg-green-50 border border-green-200">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-green-900">
+                      Successfully Imported
+                    </p>
+                    <p className="text-sm mt-1 text-green-700">
+                      {importResult.success} employee
+                      {importResult.success !== 1 ? "s" : ""} added
+                      successfully.
+                    </p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Error Summary */}
+              {importResult.failed > 0 && (
+                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                  <div className="flex items-start gap-3 mb-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-medium text-red-900">
+                        Failed to Import
+                      </p>
+                      <p className="text-sm mt-1 text-red-700">
+                        {importResult.failed} employee
+                        {importResult.failed !== 1 ? "s" : ""} could not be
+                        imported due to errors.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Error Details */}
+                  {importResult.errors.length > 0 && (
+                    <div className="mt-3 max-h-48 overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-red-100 sticky top-0">
+                          <tr>
+                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                              Row
+                            </th>
+                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                              Email
+                            </th>
+                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                              Error
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {importResult.errors.map((error, idx) => (
+                            <tr key={idx} className="border-t border-red-200">
+                              <td className="py-2 px-3 text-red-900">
+                                {error.row}
+                              </td>
+                              <td className="py-2 px-3 text-red-700">
+                                {error.email}
+                              </td>
+                              <td className="py-2 px-3 text-red-700">
+                                {error.error}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* All Failed */}
+              {importResult.success === 0 && importResult.failed > 0 && (
+                <div className="text-center py-2">
+                  <button
+                    onClick={handleRemoveFile}
+                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    Upload a Different File
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Instructions */}
-          <div className="mt-6 p-4 bg-orange-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">
-              File Requirements:
-            </h4>
-            <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-              <li>
-                Excel file must contain columns: <strong>firstName</strong>,{" "}
-                <strong>lastName</strong>, and <strong>email</strong>
-              </li>
-              <li>
-                Optional column: <strong>mobileNumber</strong> (or phone)
-              </li>
-              <li>Column names are case-insensitive</li>
-              <li>Empty rows will be skipped automatically</li>
-            </ul>
-          </div>
+          {/* Only show upload UI if no results yet */}
+          {!importResult && (
+            <>
+              {/* Download Template Button */}
+              <div className="mb-6">
+                <button
+                  onClick={downloadTemplate}
+                  disabled={isImporting}
+                  className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Template
+                </button>
+                <p className="text-sm text-gray-500 mt-1">
+                  Download a sample Excel template with the required format
+                </p>
+              </div>
+
+              {/* File Upload Area */}
+              <div className="space-y-3">
+                <div
+                  onClick={() => !isImporting && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    isImporting
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer"
+                  } border-gray-300 bg-gray-50 hover:border-orange-600`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleFileChange}
+                    disabled={isImporting}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center gap-3">
+                    {file ? (
+                      <>
+                        <FileSpreadsheet className="w-12 h-12 text-orange-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {file.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {isImporting
+                              ? "Importing..."
+                              : "Click to change file"}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-12 h-12 text-gray-400" />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            Click to upload Excel file
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Supports .xlsx, .xls, and .csv files
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Remove File Button */}
+                {file && !isImporting && (
+                  <button
+                    onClick={handleRemoveFile}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Remove File
+                  </button>
+                )}
+              </div>
+
+              {/* Importing Status */}
+              {isImporting && (
+                <div className="mt-4 p-4 rounded-lg flex items-start gap-3 bg-blue-50 border border-blue-200">
+                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-blue-900">
+                      Importing Employees...
+                    </p>
+                    <p className="text-sm mt-1 text-blue-700">
+                      Please wait while we add {previewData.length} employee
+                      {previewData.length !== 1 ? "s" : ""} to the system. Do
+                      not close this window.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Data */}
+              {previewData.length > 0 && !isImporting && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Preview ({previewData.length} employee
+                    {previewData.length !== 1 ? "s" : ""})
+                  </h3>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                            First Name
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                            Last Name
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                            Email
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                            Mobile
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.slice(0, 10).map((emp, idx) => (
+                          <tr key={idx} className="border-t border-gray-100">
+                            <td className="py-2 px-4 text-sm text-gray-900">
+                              {emp.firstName}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-900">
+                              {emp.lastName}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-600">
+                              {emp.email}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-600">
+                              {emp.mobileNumber || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {previewData.length > 10 && (
+                      <div className="text-center py-2 text-sm text-gray-500 bg-gray-50">
+                        ... and {previewData.length - 10} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div className="mt-6 p-4 bg-orange-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  File Requirements:
+                </h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                  <li>
+                    Excel file must contain columns: <strong>firstName</strong>,{" "}
+                    <strong>lastName</strong>, and <strong>email</strong>
+                  </li>
+                  <li>
+                    Optional column: <strong>mobileNumber</strong> (or phone)
+                  </li>
+                  <li>Column names are case-insensitive</li>
+                  <li>Empty rows will be skipped automatically</li>
+                </ul>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
@@ -456,22 +502,24 @@ export default function ImportEmployeeModal({
             disabled={isImporting}
             className="flex-1 h-11 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            {importResult ? "Close" : "Cancel"}
           </button>
-          <button
-            onClick={handleImport}
-            disabled={previewData.length === 0 || isProcessing || isImporting}
-            className="flex-1 h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isImporting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isImporting
-              ? "Importing..."
-              : isProcessing
-              ? "Processing..."
-              : `Import ${previewData.length} Employee${
-                  previewData.length !== 1 ? "s" : ""
-                }`}
-          </button>
+          {!importResult && (
+            <button
+              onClick={handleImport}
+              disabled={previewData.length === 0 || isProcessing || isImporting}
+              className="flex-1 h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isImporting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isImporting
+                ? "Importing..."
+                : isProcessing
+                ? "Processing..."
+                : `Import ${previewData.length} Employee${
+                    previewData.length !== 1 ? "s" : ""
+                  }`}
+            </button>
+          )}
         </div>
       </div>
     </div>

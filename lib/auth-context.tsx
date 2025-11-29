@@ -70,8 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await response.json();
       setUser(userData);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      // Clear invalid token
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userId");
       setUser(null);

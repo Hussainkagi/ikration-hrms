@@ -29,10 +29,16 @@ const navigation = [
     roles: ["admin", "manager"],
   },
   {
-    name: "Tracking",
+    name: "Clock in/out",
     href: "/tracking",
     icon: Clock,
     roles: ["admin", "manager", "employee"],
+  },
+  {
+    name: "Track Report",
+    href: "/report",
+    icon: Clock,
+    roles: ["admin", "manager"],
   },
 ];
 

@@ -76,7 +76,6 @@ export default function LoginPage() {
         );
       }
     } catch (error) {
-      console.error("Login error:", error);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setTimeout(() => {

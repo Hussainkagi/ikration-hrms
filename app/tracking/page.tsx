@@ -20,9 +20,9 @@ import {
   User,
   Upload,
   Image as ImageIcon,
+  RotateCcw,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import Employeetracking from "@/components/EmployeeTacking";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
@@ -43,14 +43,11 @@ export default function TrackingPage() {
   const [showCameraModal, setShowCameraModal] = useState<
     "check-in" | "check-out" | null
   >(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [imageSource, setImageSource] = useState<"camera" | "upload" | null>(
-    null
-  );
+  const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -58,108 +55,83 @@ export default function TrackingPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (showCameraModal) {
+      startCamera();
+    } else {
+      stopCamera();
+      setCapturedImage(null);
+      setError(null);
+    }
+
+    return () => {
+      stopCamera();
+    };
+  }, [showCameraModal]);
+
   const fetchTrackingRecords = async () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (!token || !user) return;
-
-      // You can implement fetching tracking history if your API supports it
-      // For now, we'll keep it empty until records are created
-    } catch (error) {
-      console.error("Error fetching tracking records:", error);
-    }
+    } catch (error) {}
   };
 
   const openCameraModal = (type: "check-in" | "check-out") => {
     setShowCameraModal(type);
     setCapturedImage(null);
-    setImageSource(null);
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        toast({
-          title: "Invalid File",
-          description: "Please select an image file.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setCapturedImage(result);
-        setImageSource("upload");
-        stopCamera(); // Stop camera if it was active
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+    setError(null);
   };
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: 1280, height: 720 },
         audio: false,
       });
-
+      setStream(mediaStream);
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setIsCameraActive(true);
+        videoRef.current.srcObject = mediaStream;
       }
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      toast({
-        title: "Camera Access Denied",
-        description: "Please allow camera access to capture selfie.",
-        variant: "destructive",
-      });
+      setError(null);
+    } catch (err) {
+      setError("Unable to access camera. Please check your permissions.");
     }
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
     }
-    setIsCameraActive(false);
   };
 
   const captureImage = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
 
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0);
-        const imageData = canvas.toDataURL("image/jpeg");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL("image/jpeg", 0.8);
         setCapturedImage(imageData);
-        setImageSource("camera");
-        stopCamera();
       }
     }
   };
 
   const retakePhoto = () => {
     setCapturedImage(null);
-    setImageSource(null);
+    startCamera();
   };
 
   const closeCameraModal = () => {
     stopCamera();
     setShowCameraModal(null);
     setCapturedImage(null);
-    setImageSource(null);
+    setError(null);
   };
 
   const getCurrentLocation = (): Promise<{
@@ -207,7 +179,6 @@ export default function TrackingPage() {
       try {
         location = await getCurrentLocation();
       } catch (error) {
-        console.error("Location error:", error);
         toast({
           title: "Location Required",
           description: "Please enable location services to check in/out.",
@@ -276,7 +247,6 @@ export default function TrackingPage() {
 
       closeCameraModal();
     } catch (error) {
-      console.error(`Error during ${showCameraModal}:`, error);
       toast({
         title: "Error",
         description: `An unexpected error occurred. Please try again.`,
@@ -374,97 +344,23 @@ export default function TrackingPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Tracking History */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Tracking History</CardTitle>
-            <CardDescription>
-              Your recent check-in and check-out records
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {trackingRecords.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p>No tracking records yet. Start tracking your attendance.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {trackingRecords.map((record) => {
-                  const { date, time } = formatTimestamp(record.timestamp);
-                  return (
-                    <div
-                      key={record.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                          <User className="w-6 h-6 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {getUserFullName()}
-                          </p>
-                          <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5" />
-                              {date}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              {time}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <span
-                          className={`px-4 py-2 rounded-full text-sm font-medium ${
-                            record.type === "check-in"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {record.type === "check-in"
-                            ? "Checked In"
-                            : "Checked Out"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card> */}
-        {user?.role === "admin" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Employees Tracking History</CardTitle>
-              <CardDescription>check-in and check-out records</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Employeetracking />
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {/* Camera/Upload Modal */}
+      {/* Camera Modal - Enhanced Version */}
       {showCameraModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  {showCameraModal === "check-in" ? "Check In" : "Check Out"}
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {showCameraModal === "check-in" ? "Check In" : "Check Out"}{" "}
+                  Verification
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
                   {capturedImage
-                    ? "Review your photo"
-                    : "Capture or upload a selfie (optional)"}
+                    ? "Review your photo and submit to confirm"
+                    : "Position your face in the frame and capture your selfie"}
                 </p>
               </div>
               <button
@@ -477,111 +373,133 @@ export default function TrackingPage() {
 
             {/* Camera/Preview Area */}
             <div className="p-6">
-              <div className="relative bg-gray-900 rounded-xl overflow-hidden aspect-[4/3]">
-                {capturedImage ? (
-                  <img
-                    src={capturedImage}
-                    alt="Captured selfie"
-                    className="w-full h-full object-cover"
-                  />
-                ) : isCameraActive ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                    <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
-                    <p className="text-sm opacity-75">Choose an option below</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-
-              {/* Action Buttons */}
-              <div className="mt-6 space-y-3">
-                {!capturedImage && !isCameraActive && (
-                  <>
+              <div className="space-y-4">
+                {error ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <p className="text-sm text-red-600">{error}</p>
                     <button
                       onClick={startCamera}
-                      className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                      className="mt-3 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
                     >
-                      <Camera className="w-5 h-5" />
-                      Open Camera
+                      Try Again
                     </button>
+                  </div>
+                ) : (
+                  <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                    {capturedImage ? (
+                      <img
+                        src={capturedImage}
+                        alt="Captured selfie"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover scale-x-[-1]"
+                      />
+                    )}
 
-                    <button
-                      onClick={triggerFileUpload}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Upload className="w-5 h-5" />
-                      Upload Photo
-                    </button>
-                  </>
+                    {/* Face guide overlay */}
+                    {!capturedImage && stream && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-40 h-52 sm:w-48 sm:h-64 md:w-64 md:h-80 border-2 sm:border-4 border-orange-500/50 rounded-full" />
+                      </div>
+                    )}
+                  </div>
                 )}
 
-                {isCameraActive && !capturedImage && (
-                  <button
-                    onClick={captureImage}
-                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Camera className="w-5 h-5" />
-                    Capture Photo
-                  </button>
-                )}
+                <canvas ref={canvasRef} className="hidden" />
 
-                {capturedImage && (
+                {/* Action Buttons */}
+                <div className="space-y-3">
                   <div className="flex gap-3">
+                    {capturedImage ? (
+                      <>
+                        <button
+                          onClick={retakePhoto}
+                          className="flex-1 h-12 bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          Retake
+                        </button>
+                        <button
+                          onClick={() => handleCheckInOut(false)}
+                          disabled={loading}
+                          className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {loading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-4 h-4" />
+
+                              {/* Desktop: show full text */}
+                              <span className="hidden sm:inline">
+                                Submit &{" "}
+                                {showCameraModal === "check-in"
+                                  ? "Check In"
+                                  : "Check Out"}
+                              </span>
+
+                              {/* Mobile: show short text */}
+                              <span className="inline sm:hidden">
+                                {showCameraModal === "check-in"
+                                  ? "Check In"
+                                  : "Check Out"}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={closeCameraModal}
+                          className="flex-1 h-12 bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={captureImage}
+                          disabled={!stream}
+                          className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          <Camera className="w-4 h-4" />
+                          Capture Photo
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Skip Button - Only show when no image captured */}
+                  {!capturedImage && (
                     <button
-                      onClick={retakePhoto}
+                      onClick={() => handleCheckInOut(true)}
                       disabled={loading}
-                      className="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {imageSource === "camera" ? "Retake" : "Change"}
-                    </button>
-                    <button
-                      onClick={() => handleCheckInOut(false)}
-                      disabled={loading}
-                      className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
                           Processing...
                         </>
                       ) : (
-                        "Confirm"
+                        `Skip & ${
+                          showCameraModal === "check-in"
+                            ? "Check In"
+                            : "Check Out"
+                        }`
                       )}
                     </button>
-                  </div>
-                )}
-
-                {!capturedImage && (
-                  <button
-                    onClick={() => handleCheckInOut(true)}
-                    disabled={loading}
-                    className="w-full h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      "Skip & Continue"
-                    )}
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>

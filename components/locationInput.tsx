@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Loader2, ArrowLeft } from "lucide-react";
+import { MapPin, Loader2, ArrowLeft, FileText } from "lucide-react";
+import { AgreementModal } from "@/components/agreement";
 
 interface LocationData {
   latitude: string;
@@ -29,6 +30,8 @@ export function LocationSetup({
   });
   const [error, setError] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [isAgreementOpen, setIsAgreementOpen] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(false);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -56,6 +59,11 @@ export function LocationSetup({
   };
 
   const handleSubmit = () => {
+    if (!hasAgreed) {
+      setError("Please read and agree to the Location Tracking Agreement");
+      return;
+    }
+
     if (!location.latitude || !location.longitude || !location.address) {
       setError("Please provide location coordinates and address");
       return;
@@ -68,6 +76,11 @@ export function LocationSetup({
     }
 
     onComplete(location);
+  };
+
+  const handleAgree = () => {
+    setHasAgreed(true);
+    setError("");
   };
 
   return (
@@ -164,7 +177,6 @@ export function LocationSetup({
           />
         </div>
 
-        {/* NEW: Radius Field */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-900">
             Geofence Radius (meters) <span className="text-red-500">*</span>
@@ -185,6 +197,26 @@ export function LocationSetup({
           </p>
         </div>
 
+        {/* Agreement Notice */}
+        <div className="p-1">
+          <div className="flex-1">
+            <p className="text-sm text-orange-600">
+              <button
+                onClick={() => setIsAgreementOpen(true)}
+                className="font-semibold text-orange-600 underline"
+                disabled={isLoading}
+              >
+                Agree to the terms & conditions
+              </button>
+              {hasAgreed && (
+                <span className="ml-2 text-green-600 font-medium">
+                  ✓ Agreed
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
         <button
           onClick={handleSubmit}
           disabled={isLoading}
@@ -194,6 +226,13 @@ export function LocationSetup({
           {isLoading ? "Processing..." : "Continue to Verification"}
         </button>
       </div>
+
+      {/* Agreement Modal */}
+      <AgreementModal
+        isOpen={isAgreementOpen}
+        onClose={() => setIsAgreementOpen(false)}
+        onAgree={handleAgree}
+      />
     </div>
   );
 }

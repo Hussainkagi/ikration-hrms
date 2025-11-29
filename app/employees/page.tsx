@@ -77,7 +77,6 @@ export default function EmployeesPage() {
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
-      console.error("Error fetching employees:", error);
       toast({
         title: "Error",
         description: "Failed to fetch employees. Please try again.",
@@ -127,7 +126,6 @@ export default function EmployeesPage() {
         status: "active",
       });
     } catch (error) {
-      console.error("Error saving employee:", error);
       toast({
         title: "Error",
         description: "Failed to save employee. Please try again.",
@@ -184,7 +182,6 @@ export default function EmployeesPage() {
 
       // Close modal
     } catch (error) {
-      console.error("Error deleting employee:", error);
       toast({
         title: "Error",
         description: "Failed to delete employee. Please try again.",
@@ -206,52 +203,73 @@ export default function EmployeesPage() {
     });
   };
 
-  const handleImportEmployees = async (
-    importedEmployees: Array<{
-      firstName: string;
-      lastName: string;
-      email: string;
-      mobileNumber: string;
-    }>
-  ) => {
+  const handleImportEmployees = async (file: File) => {
     const token = getAuthToken();
 
-    // Import employees one by one
-    const promises = importedEmployees.map((emp) =>
-      fetch(`${API_BASE_URL}/user`, {
+    // Create FormData to send the file
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/bulk-upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          // Don't set Content-Type header - browser will set it with boundary for FormData
         },
-        body: JSON.stringify({
-          ...emp,
-          role: "employee",
-          status: "active",
-        }),
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to import ${emp.firstName} ${emp.lastName}`);
-        }
-        return response;
-      })
-    );
+        body: formData,
+      });
 
-    // Wait for all imports to complete
-    await Promise.all(promises);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to import employees");
+      }
 
-    // Show success message
-    toast({
-      title: "Employees Imported",
-      description: `${importedEmployees.length} employee(s) have been imported successfully.`,
-    });
+      const result = await response.json();
 
-    // Refresh the employee list
-    await fetchEmployees();
+      // Show appropriate toast based on results
+      if (result.success > 0 && result.failed === 0) {
+        toast({
+          title: "Import Successful",
+          description: `${result.success} employee${
+            result.success !== 1 ? "s" : ""
+          } imported successfully.`,
+        });
+      } else if (result.success > 0 && result.failed > 0) {
+        toast({
+          title: "Partial Import",
+          description: `${result.success} imported, ${result.failed} failed. Check details below.`,
+          variant: "default",
+        });
+      } else if (result.failed > 0) {
+        toast({
+          title: "Import Failed",
+          description: `All ${result.failed} employee${
+            result.failed !== 1 ? "s" : ""
+          } failed to import.`,
+          variant: "destructive",
+        });
+      }
 
-    // Modal will close automatically after this completes successfully
+      // Refresh the employee list if any were successful
+      if (result.success > 0) {
+        await fetchEmployees();
+      }
+
+      // Return the result to the modal
+      return result;
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to import employees. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
-
   // Define columns for CommonTable
   const columns = [
     {

@@ -119,7 +119,6 @@ export default function EmployeeTracking() {
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
-      console.error("Error fetching employees:", error);
       toast({
         title: "Error",
         description: "Failed to fetch employees list.",
@@ -166,7 +165,6 @@ export default function EmployeeTracking() {
       const data = await response.json();
       setAttendanceRecords(data);
     } catch (error) {
-      console.error("Error fetching attendance records:", error);
       toast({
         title: "Error",
         description: "Failed to fetch attendance records.",

@@ -74,7 +74,6 @@ export default function EmployeeEditPage() {
         status: data.status,
       });
     } catch (error) {
-      console.error("Error fetching employee details:", error);
       toast({
         title: "Error",
         description: "Failed to fetch employee details. Please try again.",
@@ -121,8 +120,6 @@ export default function EmployeeEditPage() {
         router.push("/employees");
       }, 800);
     } catch (error: any) {
-      console.error("Error updating employee:", error);
-
       toast({
         title: "Error",
         description:

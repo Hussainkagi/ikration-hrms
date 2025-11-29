@@ -104,7 +104,6 @@ export default function SetupPasswordPage() {
         );
       }
     } catch (error) {
-      console.error("Setup password error:", error);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
