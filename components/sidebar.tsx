@@ -11,6 +11,8 @@ import {
   Building2,
   LogOut,
   AlertCircle,
+  UserCircle,
+  ChartLine,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
@@ -37,7 +39,13 @@ const navigation = [
   {
     name: "Track Report",
     href: "/report",
-    icon: Clock,
+    icon: ChartLine,
+    roles: ["admin", "manager"],
+  },
+  {
+    name: "Company Profile",
+    href: "/profile",
+    icon: UserCircle,
     roles: ["admin", "manager"],
   },
 ];

@@ -365,12 +365,6 @@ export default function EmployeeTracking() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Employee Attendance Tracking</CardTitle>
-          <CardDescription>
-            View and monitor employee attendance records
-          </CardDescription>
-        </CardHeader>
         <CardContent className="space-y-4">
           {fetchingEmployees ? (
             <div className="flex items-center justify-center py-8">
