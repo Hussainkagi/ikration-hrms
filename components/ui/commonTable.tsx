@@ -28,6 +28,7 @@ interface Column<T> {
   sortable?: boolean;
   searchable?: boolean;
   filterable?: boolean;
+  hiddenFromToggle?: boolean;
   headerClassName?: string;
   cellClassName?: string;
   searchValue?: (row: T) => string;
@@ -669,26 +670,29 @@ function CommonTable<T extends Record<string, any>>({
                   </button>
                   {showColumnToggleDropdown && (
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
-                      {columns.map((col, i) => (
-                        <label
-                          key={i}
-                          className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                          onClick={() =>
-                            setVisibleColumns((prev) => ({
-                              ...prev,
-                              [i]: !prev[i],
-                            }))
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={visibleColumns[i]}
-                            onChange={() => {}}
-                            className="mr-2 pointer-events-none"
-                          />
-                          <span className="text-sm">{col.header}</span>
-                        </label>
-                      ))}
+                      {columns
+                        .map((col, i) => ({ col, i }))
+                        .filter(({ col }) => !col.hiddenFromToggle)
+                        .map(({ col, i }) => (
+                          <label
+                            key={i}
+                            className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={visibleColumns[i]}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                setVisibleColumns((prev) => ({
+                                  ...prev,
+                                  [i]: !prev[i],
+                                }));
+                              }}
+                              className="mr-2"
+                            />
+                            <span className="text-sm">{col.header}</span>
+                          </label>
+                        ))}
                     </div>
                   )}
                 </div>

@@ -26,6 +26,7 @@ interface Employee {
   role: string;
   status: string;
   createdAt: string;
+  remote: boolean;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -42,6 +43,7 @@ export default function EmployeesPage() {
     mobileNumber: "",
     role: "employee",
     status: "active",
+    remote: false,
   });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -124,6 +126,7 @@ export default function EmployeesPage() {
         mobileNumber: "",
         role: "employee",
         status: "active",
+        remote: false,
       });
     } catch (error) {
       toast({
@@ -200,6 +203,7 @@ export default function EmployeesPage() {
       mobileNumber: "",
       role: "employee",
       status: "active",
+      remote: false,
     });
   };
 
@@ -335,6 +339,22 @@ export default function EmployeesPage() {
           }`}
         >
           {row.status}
+        </span>
+      ),
+    },
+    {
+      key: "remote",
+      header: "remote",
+      sortable: true,
+      render: (row: Employee) => (
+        <span
+          className={`px-2 py-1 text-xs rounded-full capitalize ${
+            row.remote === true
+              ? "bg-green-100 text-green-800"
+              : "bg-orange-100 text-orange-800"
+          }`}
+        >
+          {row.remote ? "Remote" : "Onsite"}
         </span>
       ),
     },
@@ -552,7 +572,46 @@ export default function EmployeesPage() {
                     </select>
                   </div>
                 </div>
-
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Is this employee working remotely?
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="isRemote"
+                        value="true"
+                        checked={formData.remote === true}
+                        onChange={() =>
+                          setFormData({ ...formData, remote: true })
+                        }
+                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Yes</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="isRemote"
+                        value="false"
+                        checked={formData.remote === false}
+                        onChange={() =>
+                          setFormData({ ...formData, remote: false })
+                        }
+                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">No</span>
+                    </label>
+                  </div>
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note:</strong> If set to "Yes", the employee will
+                      be able to check-in/check-out even when not within the
+                      office location range.
+                    </p>
+                  </div>
+                </div>
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
