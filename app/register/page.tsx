@@ -198,6 +198,10 @@ export default function RegisterPage() {
       latitude: parseFloat(location.latitude),
       radius: parseInt(location.radius),
       officeAddress: location.address,
+      workStartTime: location.workStartTime,
+      workEndTime: location.workEndTime,
+      weeklyOffDays: location.weeklyOffDays,
+      agreementAccepted: true,
     };
 
     try {

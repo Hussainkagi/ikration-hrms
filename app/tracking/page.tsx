@@ -10,18 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import {
-  LogIn,
-  LogOut,
-  Clock,
-  Calendar,
-  Camera,
-  X,
-  User,
-  Upload,
-  Image as ImageIcon,
-  RotateCcw,
-} from "lucide-react";
+import { LogIn, LogOut, Camera, X, RotateCcw } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
@@ -43,6 +32,7 @@ export default function TrackingPage() {
   const [showCameraModal, setShowCameraModal] = useState<
     "check-in" | "check-out" | null
   >(null);
+  const [cameraActive, setCameraActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +46,7 @@ export default function TrackingPage() {
   }, [user]);
 
   useEffect(() => {
-    if (showCameraModal) {
+    if (showCameraModal && cameraActive) {
       startCamera();
     } else {
       stopCamera();
@@ -67,7 +57,7 @@ export default function TrackingPage() {
     return () => {
       stopCamera();
     };
-  }, [showCameraModal]);
+  }, [showCameraModal, cameraActive]);
 
   const fetchTrackingRecords = async () => {
     try {
@@ -78,6 +68,7 @@ export default function TrackingPage() {
 
   const openCameraModal = (type: "check-in" | "check-out") => {
     setShowCameraModal(type);
+    setCameraActive(false);
     setCapturedImage(null);
     setError(null);
   };
@@ -130,6 +121,14 @@ export default function TrackingPage() {
   const closeCameraModal = () => {
     stopCamera();
     setShowCameraModal(null);
+    setCameraActive(false);
+    setCapturedImage(null);
+    setError(null);
+  };
+
+  const goBackToInitialView = () => {
+    stopCamera();
+    setCameraActive(false);
     setCapturedImage(null);
     setError(null);
   };
@@ -158,7 +157,7 @@ export default function TrackingPage() {
     });
   };
 
-  const handleCheckInOut = async (skipSelfie: boolean = false) => {
+  const handleCheckInOut = async (skipSelfie = false) => {
     if (!showCameraModal) return;
 
     setLoading(true);
@@ -336,17 +335,16 @@ export default function TrackingPage() {
               <button
                 onClick={() => openCameraModal("check-out")}
                 disabled={loading}
-                className="flex-1 h-14 py-5 sm:py-0 bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 h-14 py-5 sm:py-0 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <LogOut className="w-5 h-5" />
                 Check Out
+                <LogOut className="w-5 h-5" />
               </button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Camera Modal - Enhanced Version */}
       {showCameraModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
@@ -354,11 +352,12 @@ export default function TrackingPage() {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {showCameraModal === "check-in" ? "Check In" : "Check Out"}{" "}
-                  Verification
+                  {showCameraModal === "check-in" ? "Check In" : "Check Out"}
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
-                  {capturedImage
+                  {!cameraActive
+                    ? "Take a selfie for verification or skip to continue"
+                    : capturedImage
                     ? "Review your photo and submit to confirm"
                     : "Position your face in the frame and capture your selfie"}
                 </p>
@@ -371,50 +370,94 @@ export default function TrackingPage() {
               </button>
             </div>
 
-            {/* Camera/Preview Area */}
+            {/* Modal Content */}
             <div className="p-6">
-              <div className="space-y-4">
-                {error ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                    <p className="text-sm text-red-600">{error}</p>
-                    <button
-                      onClick={startCamera}
-                      className="mt-3 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
-                    >
-                      Try Again
-                    </button>
+              {!cameraActive ? (
+                <div className="space-y-6">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-8 text-center">
+                    <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Camera className="w-10 h-10 text-white" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      Selfie Verification
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Take a selfie to verify your attendance or skip to
+                      continue without a photo
+                    </p>
+
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => setCameraActive(true)}
+                        className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Camera className="w-5 h-5" />
+                        Take a Selfie
+                      </button>
+
+                      <button
+                        onClick={() => handleCheckInOut(true)}
+                        disabled={loading}
+                        className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
+                            Processing...
+                          </>
+                        ) : (
+                          `Skip & ${
+                            showCameraModal === "check-in"
+                              ? "Check In"
+                              : "Check Out"
+                          }`
+                        )}
+                      </button>
+                    </div>
                   </div>
-                ) : (
-                  <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                    {capturedImage ? (
-                      <img
-                        src={capturedImage}
-                        alt="Captured selfie"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-cover scale-x-[-1]"
-                      />
-                    )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {error ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                      <p className="text-sm text-red-600">{error}</p>
+                      <button
+                        onClick={startCamera}
+                        className="mt-3 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                      {capturedImage ? (
+                        <img
+                          src={capturedImage || "/placeholder.svg"}
+                          alt="Captured selfie"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full h-full object-cover scale-x-[-1]"
+                        />
+                      )}
 
-                    {/* Face guide overlay */}
-                    {!capturedImage && stream && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-40 h-52 sm:w-48 sm:h-64 md:w-64 md:h-80 border-2 sm:border-4 border-orange-500/50 rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {/* Face guide overlay */}
+                      {!capturedImage && stream && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-40 h-52 sm:w-48 sm:h-64 md:w-64 md:h-80 border-2 sm:border-4 border-orange-500/50 rounded-full" />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                <canvas ref={canvasRef} className="hidden" />
+                  <canvas ref={canvasRef} className="hidden" />
 
-                {/* Action Buttons */}
-                <div className="space-y-3">
+                  {/* Action Buttons */}
                   <div className="flex gap-3">
                     {capturedImage ? (
                       <>
@@ -438,16 +481,12 @@ export default function TrackingPage() {
                           ) : (
                             <>
                               <Camera className="w-4 h-4" />
-
-                              {/* Desktop: show full text */}
                               <span className="hidden sm:inline">
                                 Submit &{" "}
                                 {showCameraModal === "check-in"
                                   ? "Check In"
                                   : "Check Out"}
                               </span>
-
-                              {/* Mobile: show short text */}
                               <span className="inline sm:hidden">
                                 {showCameraModal === "check-in"
                                   ? "Check In"
@@ -460,7 +499,7 @@ export default function TrackingPage() {
                     ) : (
                       <>
                         <button
-                          onClick={closeCameraModal}
+                          onClick={goBackToInitialView}
                           className="flex-1 h-12 bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" />
@@ -477,30 +516,8 @@ export default function TrackingPage() {
                       </>
                     )}
                   </div>
-
-                  {/* Skip Button - Only show when no image captured */}
-                  {!capturedImage && (
-                    <button
-                      onClick={() => handleCheckInOut(true)}
-                      disabled={loading}
-                      className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                          Processing...
-                        </>
-                      ) : (
-                        `Skip & ${
-                          showCameraModal === "check-in"
-                            ? "Check In"
-                            : "Check Out"
-                        }`
-                      )}
-                    </button>
-                  )}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

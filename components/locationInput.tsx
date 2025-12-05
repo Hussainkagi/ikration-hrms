@@ -65,6 +65,7 @@ export function LocationSetup({
   const placesService = useRef<any>(null);
 
   // Load Google Maps Script
+  // Load Google Maps Script
   useEffect(() => {
     const initializeServices = () => {
       try {
@@ -84,8 +85,9 @@ export function LocationSetup({
     };
 
     const loadGoogleMapsScript = () => {
-      // Check if already loaded
+      // Check if already loaded and initialized
       if ((window as any).google?.maps?.places) {
+        console.log("✅ Google Maps already loaded, initializing services");
         initializeServices();
         return;
       }
@@ -96,11 +98,25 @@ export function LocationSetup({
       );
 
       if (existingScript) {
-        existingScript.addEventListener("load", initializeServices);
+        console.log("✅ Script tag found, waiting for load");
+        // If script exists but not loaded yet, wait for it
+        if (!(window as any).google?.maps?.places) {
+          const checkInterval = setInterval(() => {
+            if ((window as any).google?.maps?.places) {
+              clearInterval(checkInterval);
+              initializeServices();
+            }
+          }, 100);
+
+          // Clear interval after 10 seconds to prevent memory leak
+          setTimeout(() => clearInterval(checkInterval), 10000);
+        } else {
+          initializeServices();
+        }
         return;
       }
 
-      // Load the script
+      // Load the script only if it doesn't exist
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY;
 
       if (!apiKey) {
@@ -113,10 +129,12 @@ export function LocationSetup({
         return;
       }
 
+      console.log("📍 Loading Google Maps script...");
       const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
+      script.id = "google-maps-script"; // Add ID to prevent duplicates
 
       script.onload = () => {
         console.log("✅ Google Maps script loaded");
@@ -134,6 +152,11 @@ export function LocationSetup({
     };
 
     loadGoogleMapsScript();
+
+    // Cleanup function
+    return () => {
+      // Don't remove the script on unmount as it might be used by other components
+    };
   }, []);
 
   // Handle click outside to close suggestions
@@ -297,11 +320,20 @@ export function LocationSetup({
 
   const handleSubmit = () => {
     if (!hasAgreed) {
-      setError("Please read and agree to the Location Tracking Agreement");
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+
+      setError("Please read and agree to the Terms & Conditions Agreement");
       return;
     }
 
     if (!location.latitude || !location.longitude || !location.address) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
       setError("Please provide location coordinates and address");
       return;
     }
