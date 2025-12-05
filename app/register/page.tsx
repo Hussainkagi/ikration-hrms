@@ -610,13 +610,28 @@ export default function RegisterPage() {
           <div className="absolute bottom-32 right-32 w-8 h-8 border-2 border-white rounded-full"></div>
         </div>
 
+        {/* Free Badge */}
+        <div className="absolute top-8 right-8 z-20">
+          <div className="bg-green-500 bg-opacity-20 backdrop-blur-sm px-6 py-3 rounded-full border-2 border-none shadow-lg">
+            <p className="text-white font-bold text-lg">Free of cost</p>
+          </div>
+        </div>
+
         <div className="relative z-10 text-center text-white max-w-lg">
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm mb-6">
-              {currentStep === 1 && <Mail className="w-16 h-16 text-white" />}
-              {currentStep === 2 && <User className="w-16 h-16 text-white" />}
-              {currentStep === 3 && <MapPin className="w-16 h-16 text-white" />}
-              {currentStep === 4 && <Mail className="w-16 h-16 text-white" />}
+              {currentStep === 1 && (
+                <Mail className="w-16 h-16 text-orange-500" />
+              )}
+              {currentStep === 2 && (
+                <User className="w-16 h-16 text-orange-500" />
+              )}
+              {currentStep === 3 && (
+                <MapPin className="w-16 h-16 text-orange-500" />
+              )}
+              {currentStep === 4 && (
+                <Mail className="w-16 h-16 text-orange-500" />
+              )}
               {currentStep === 5 && (
                 <CheckCircle2 className="w-16 h-16 text-white" />
               )}
