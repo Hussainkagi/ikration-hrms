@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AppProvider } from "@/contexts/app-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { AuthGuard } from "@/components/auth-guard";
-
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB96zEHz_Hdc9vlzfhIUUeuzhpNX0BQ9Cw&libraries=places"></script>;
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
