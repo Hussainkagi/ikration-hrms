@@ -2,16 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MapPin, Loader2, ArrowLeft, Search, X } from "lucide-react";
-import { AgreementModal } from "@/components/agreement";
+import { AgreementCheckbox } from "@/components/agreement";
 
 interface LocationData {
   latitude: string;
   longitude: string;
   address: string;
   radius: string;
-  workStartTime: string;
-  workEndTime: string;
-  weeklyOffDays: number[];
 }
 
 interface LocationSetupProps {
@@ -25,16 +22,6 @@ interface PlaceSuggestion {
   place_id: string;
 }
 
-const DAYS_OF_WEEK = [
-  { label: "Sunday", value: 0 },
-  { label: "Monday", value: 1 },
-  { label: "Tuesday", value: 2 },
-  { label: "Wednesday", value: 3 },
-  { label: "Thursday", value: 4 },
-  { label: "Friday", value: 5 },
-  { label: "Saturday", value: 6 },
-];
-
 export function LocationSetup({
   onComplete,
   onBack,
@@ -45,13 +32,9 @@ export function LocationSetup({
     longitude: "",
     address: "",
     radius: "100",
-    workStartTime: "09:00",
-    workEndTime: "18:00",
-    weeklyOffDays: [0, 6],
   });
   const [error, setError] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
-  const [isAgreementOpen, setIsAgreementOpen] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
 
   // Google Places Autocomplete
@@ -64,7 +47,6 @@ export function LocationSetup({
   const autocompleteService = useRef<any>(null);
   const placesService = useRef<any>(null);
 
-  // Load Google Maps Script
   // Load Google Maps Script
   useEffect(() => {
     const initializeServices = () => {
@@ -85,21 +67,18 @@ export function LocationSetup({
     };
 
     const loadGoogleMapsScript = () => {
-      // Check if already loaded and initialized
       if ((window as any).google?.maps?.places) {
         console.log("✅ Google Maps already loaded, initializing services");
         initializeServices();
         return;
       }
 
-      // Check if script is already in DOM
       const existingScript = document.querySelector(
         'script[src*="maps.googleapis.com"]'
       );
 
       if (existingScript) {
         console.log("✅ Script tag found, waiting for load");
-        // If script exists but not loaded yet, wait for it
         if (!(window as any).google?.maps?.places) {
           const checkInterval = setInterval(() => {
             if ((window as any).google?.maps?.places) {
@@ -107,8 +86,6 @@ export function LocationSetup({
               initializeServices();
             }
           }, 100);
-
-          // Clear interval after 10 seconds to prevent memory leak
           setTimeout(() => clearInterval(checkInterval), 10000);
         } else {
           initializeServices();
@@ -116,7 +93,6 @@ export function LocationSetup({
         return;
       }
 
-      // Load the script only if it doesn't exist
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY;
 
       if (!apiKey) {
@@ -134,11 +110,11 @@ export function LocationSetup({
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
-      script.id = "google-maps-script"; // Add ID to prevent duplicates
+      script.id = "google-maps-script";
 
       script.onload = () => {
         console.log("✅ Google Maps script loaded");
-        setTimeout(initializeServices, 100); // Small delay to ensure everything is ready
+        setTimeout(initializeServices, 100);
       };
 
       script.onerror = (err) => {
@@ -152,11 +128,6 @@ export function LocationSetup({
     };
 
     loadGoogleMapsScript();
-
-    // Cleanup function
-    return () => {
-      // Don't remove the script on unmount as it might be used by other components
-    };
   }, []);
 
   // Handle click outside to close suggestions
@@ -195,7 +166,7 @@ export function LocationSetup({
       autocompleteService.current.getPlacePredictions(
         {
           input: value,
-          types: ["establishment", "geocode"], // Get both businesses and addresses
+          types: ["establishment", "geocode"],
         },
         (predictions: any[], status: string) => {
           setIsLoadingPlaces(false);
@@ -309,23 +280,13 @@ export function LocationSetup({
     );
   };
 
-  const toggleWeeklyOffDay = (day: number) => {
-    setLocation({
-      ...location,
-      weeklyOffDays: location.weeklyOffDays.includes(day)
-        ? location.weeklyOffDays.filter((d) => d !== day)
-        : [...location.weeklyOffDays, day],
-    });
-  };
-
   const handleSubmit = () => {
     if (!hasAgreed) {
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
-
-      setError("Please read and agree to the Terms & Conditions Agreement");
+      setError("Please read and agree to the Agreement");
       return;
     }
 
@@ -344,17 +305,7 @@ export function LocationSetup({
       return;
     }
 
-    if (!location.workStartTime || !location.workEndTime) {
-      setError("Please provide work hours");
-      return;
-    }
-
     onComplete(location);
-  };
-
-  const handleAgree = () => {
-    setHasAgreed(true);
-    setError("");
   };
 
   return (
@@ -374,10 +325,10 @@ export function LocationSetup({
           <MapPin className="w-8 h-8 text-orange-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Office Location & Work Schedule
+          Office Location Setup
         </h2>
         <p className="text-gray-600">
-          Set your office location and work hours for attendance tracking
+          Set your office location for attendance tracking
         </p>
       </div>
 
@@ -451,7 +402,7 @@ export function LocationSetup({
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {suggestions.map((suggestion, index) => (
+                {suggestions.map((suggestion) => (
                   <button
                     key={suggestion.place_id}
                     onClick={() =>
@@ -552,90 +503,14 @@ export function LocationSetup({
           </p>
         </div>
 
-        {/* Work Hours */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-900">
-              Work Start Time <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="time"
-              value={location.workStartTime}
-              onChange={(e) =>
-                setLocation({ ...location, workStartTime: e.target.value })
-              }
-              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-900">
-              Work End Time <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="time"
-              value={location.workEndTime}
-              onChange={(e) =>
-                setLocation({ ...location, workEndTime: e.target.value })
-              }
-              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-
-        {/* Weekly Off Days */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-900">
-            Weekly Off Days <span className="text-red-500">*</span>
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {DAYS_OF_WEEK.map((day) => (
-              <label
-                key={day.value}
-                className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-all ${
-                  location.weeklyOffDays.includes(day.value)
-                    ? "bg-orange-50 border-orange-600 text-orange-900"
-                    : "border-gray-300 hover:border-gray-400"
-                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <input
-                  type="checkbox"
-                  checked={location.weeklyOffDays.includes(day.value)}
-                  onChange={() => toggleWeeklyOffDay(day.value)}
-                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-600"
-                  disabled={isLoading}
-                />
-                <span className="text-sm font-medium">
-                  {day.label.slice(0, 3)}
-                </span>
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500">
-            Select the days when your office is closed
-          </p>
-        </div>
-
-        {/* Agreement Notice */}
-        <div className="p-1">
-          <div className="flex-1">
-            <p className="text-sm text-orange-600">
-              <button
-                onClick={() => setIsAgreementOpen(true)}
-                className="font-semibold text-orange-600 underline"
-                disabled={isLoading}
-              >
-                Agree to the terms & conditions
-              </button>
-              {hasAgreed && (
-                <span className="ml-2 text-green-600 font-medium">
-                  ✓ Agreed
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
+        {/* Agreement Checkbox */}
+        <AgreementCheckbox
+          isChecked={hasAgreed}
+          onCheckedChange={(checked) => {
+            setHasAgreed(checked);
+            if (checked) setError("");
+          }}
+        />
 
         <button
           onClick={handleSubmit}
@@ -646,13 +521,6 @@ export function LocationSetup({
           {isLoading ? "Processing..." : "Continue to Verification"}
         </button>
       </div>
-
-      {/* Agreement Modal */}
-      <AgreementModal
-        isOpen={isAgreementOpen}
-        onClose={() => setIsAgreementOpen(false)}
-        onAgree={handleAgree}
-      />
     </div>
   );
 }

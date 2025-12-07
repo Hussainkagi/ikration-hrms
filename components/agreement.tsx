@@ -1,50 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { X, ScrollText } from "lucide-react";
+import { useState } from "react";
+import { X, ScrollText, ExternalLink } from "lucide-react";
 
-interface AgreementModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAgree: () => void;
+interface AgreementCheckboxProps {
+  isChecked: boolean;
+  onCheckedChange: (checked: boolean) => void;
 }
 
-export function AgreementModal({
+function AgreementViewModal({
   isOpen,
   onClose,
-  onAgree,
-}: AgreementModalProps) {
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Reset scroll state when modal opens
-    if (isOpen) {
-      setHasScrolledToBottom(false);
-    }
-  }, [isOpen]);
-
-  const handleScroll = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-
-    if (isAtBottom) {
-      setHasScrolledToBottom(true);
-    }
-  };
-
-  const handleAgree = () => {
-    onAgree();
-    onClose();
-  };
-
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -52,9 +26,7 @@ export function AgreementModal({
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <ScrollText className="w-5 h-5 text-orange-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Location Tracking Agreement
-            </h2>
+            <h2 className="text-xl font-bold text-gray-900">Agreement</h2>
           </div>
           <button
             onClick={onClose}
@@ -65,11 +37,7 @@ export function AgreementModal({
         </div>
 
         {/* Scrollable Content */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-6 space-y-4 text-gray-700"
-        >
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 text-gray-700">
           <div className="prose prose-sm max-w-none">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
               Terms and Conditions
@@ -151,7 +119,7 @@ export function AgreementModal({
               7. Consent
             </h4>
             <p className="mb-4">
-              By clicking "I Agree" below, you confirm that:
+              By checking the agreement box, you confirm that:
             </p>
             <ul className="list-disc pl-6 mb-4 space-y-2">
               <li>You have read and understood this agreement</li>
@@ -195,32 +163,56 @@ export function AgreementModal({
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        {!hasScrolledToBottom && (
-          <div className="px-6 py-3 bg-orange-50 border-t border-orange-200">
-            <p className="text-sm text-orange-700 text-center">
-              Please scroll to the bottom to read the complete agreement
-            </p>
-          </div>
-        )}
-
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex gap-3">
+        <div className="p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 h-11 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
+            className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleAgree}
-            disabled={!hasScrolledToBottom}
-            className="flex-1 h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-600"
-          >
-            I Agree
+            Close
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+export function AgreementCheckbox({
+  isChecked,
+  onCheckedChange,
+}: AgreementCheckboxProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <input
+          type="checkbox"
+          id="agreement"
+          checked={isChecked}
+          onChange={(e) => onCheckedChange(e.target.checked)}
+          className="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-600"
+        />
+        <label htmlFor="agreement" className="flex-1 text-sm text-gray-700">
+          I have read and agree to the{" "}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsModalOpen(true);
+            }}
+            className="text-orange-600 hover:text-orange-700 font-medium underline inline-flex items-center gap-1"
+          >
+            Agreement
+            <ExternalLink className="w-3 h-3" />
+          </button>
+        </label>
+      </div>
+
+      <AgreementViewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 }
