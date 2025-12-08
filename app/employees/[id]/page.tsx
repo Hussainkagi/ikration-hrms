@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Mail, User, Phone, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, User, Phone, ArrowLeft, Loader2, Clock } from "lucide-react";
 
 interface EmployeeDetails {
   id: string;
@@ -22,9 +22,24 @@ interface EmployeeDetails {
   mobileNumber: string;
   role: string;
   status: string;
+  remote: boolean;
   organizationId: string;
+  shiftId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Shift {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  lateTime: string;
+  days: number[];
+  organizationId: string;
+  isDefault: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -37,16 +52,45 @@ export default function EmployeeEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [employee, setEmployee] = useState<EmployeeDetails | null>(null);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     mobileNumber: "",
     status: "active",
+    remote: false,
+    shiftId: "",
   });
+  const [originalShiftId, setOriginalShiftId] = useState<string | null>(null);
 
   const getAuthToken = () => {
     return localStorage.getItem("accessToken");
+  };
+
+  // Fetch shifts
+  const fetchShifts = async () => {
+    try {
+      const token = getAuthToken();
+
+      const response = await fetch(`${API_BASE_URL}/shift`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch shifts");
+
+      const data = await response.json();
+      setShifts(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch shifts. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Fetch employee details
@@ -66,12 +110,15 @@ export default function EmployeeEditPage() {
 
       const data: EmployeeDetails = await response.json();
       setEmployee(data);
+      setOriginalShiftId(data.shiftId);
       setFormData({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         mobileNumber: data.mobileNumber,
         status: data.status,
+        remote: data.remote || false,
+        shiftId: data.shiftId || "",
       });
     } catch (error) {
       toast({
@@ -88,6 +135,7 @@ export default function EmployeeEditPage() {
   useEffect(() => {
     if (employeeId) {
       fetchEmployeeDetails();
+      fetchShifts();
     }
   }, [employeeId]);
 
@@ -98,18 +146,58 @@ export default function EmployeeEditPage() {
       setSaving(true);
       const token = getAuthToken();
 
+      // Update employee basic info (without shiftId)
+      const updateData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobileNumber: formData.mobileNumber,
+        status: formData.status,
+        remote: formData.remote,
+      };
+
       const response = await fetch(`${API_BASE_URL}/user/${employeeId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
-        const errorData = await response.json(); // 👈 read backend error
+        const errorData = await response.json();
         throw new Error(errorData?.message || "Failed to update employee");
+      }
+
+      // Handle shift assignment changes
+      const shiftChanged = formData.shiftId !== (originalShiftId || "");
+
+      if (shiftChanged) {
+        if (formData.shiftId) {
+          // Assign new shift
+          const assignResponse = await fetch(`${API_BASE_URL}/shift/assign`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: employeeId,
+              shiftId: formData.shiftId,
+            }),
+          });
+
+          if (!assignResponse.ok) {
+            toast({
+              title: "Warning",
+              description: `Employee updated but shift assignment failed.`,
+              variant: "default",
+            });
+          }
+        }
+        // Note: If you have an unassign endpoint, you can add logic here
+        // for when formData.shiftId is empty but originalShiftId had a value
       }
 
       setTimeout(() => {
@@ -138,6 +226,13 @@ export default function EmployeeEditPage() {
       ...formData,
       status: formData.status === "active" ? "inactive" : "active",
     });
+  };
+
+  // Helper function to get shift name by ID
+  const getShiftName = (shiftId: string | null) => {
+    if (!shiftId) return "Not Assigned";
+    const shift = shifts.find((s) => s.id === shiftId);
+    return shift ? shift.name : "Unknown Shift";
   };
 
   if (loading) {
@@ -209,6 +304,7 @@ export default function EmployeeEditPage() {
                       placeholder="John"
                       className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -232,6 +328,7 @@ export default function EmployeeEditPage() {
                       placeholder="Doe"
                       className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -255,6 +352,7 @@ export default function EmployeeEditPage() {
                       placeholder="john.doe@company.com"
                       className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -281,8 +379,53 @@ export default function EmployeeEditPage() {
                       placeholder="+1234567890"
                       className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
+                      disabled={saving}
                     />
                   </div>
+                </div>
+
+                <div className="md:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="shift"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Assign Shift
+                    </label>
+
+                    {/* Add More Shift Timings Link */}
+                    <span
+                      onClick={() => router.push("/shifts")}
+                      className="text-sm text-orange-600 cursor-pointer hover:underline"
+                    >
+                      Add more shift timings
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <select
+                      id="shift"
+                      value={formData.shiftId}
+                      onChange={(e) =>
+                        setFormData({ ...formData, shiftId: e.target.value })
+                      }
+                      className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                      disabled={saving}
+                    >
+                      <option value="">No Shift Assigned</option>
+                      {shifts.map((shift) => (
+                        <option key={shift.id} value={shift.id}>
+                          {shift.name} ({shift.startTime} - {shift.endTime})
+                          {shift.isDefault ? " - Default" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {originalShiftId && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      Current shift: {getShiftName(originalShiftId)}
+                    </p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -293,7 +436,8 @@ export default function EmployeeEditPage() {
                     <button
                       type="button"
                       onClick={toggleStatus}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 ${
+                      disabled={saving}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                         formData.status === "active"
                           ? "bg-green-600"
                           : "bg-gray-300"
@@ -320,6 +464,49 @@ export default function EmployeeEditPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     Toggle to change employee status between active and inactive
                   </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Is this employee working remotely?
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="isRemote"
+                        value="true"
+                        checked={formData.remote === true}
+                        onChange={() =>
+                          setFormData({ ...formData, remote: true })
+                        }
+                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        disabled={saving}
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Yes</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="isRemote"
+                        value="false"
+                        checked={formData.remote === false}
+                        onChange={() =>
+                          setFormData({ ...formData, remote: false })
+                        }
+                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        disabled={saving}
+                      />
+                      <span className="ml-2 text-sm text-gray-700">No</span>
+                    </label>
+                  </div>
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note:</strong> If set to "Yes", the employee will
+                      be able to check-in/check-out even when not within the
+                      office location range.
+                    </p>
+                  </div>
                 </div>
               </div>
 

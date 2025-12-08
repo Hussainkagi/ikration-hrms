@@ -18,6 +18,7 @@ import {
   Activity,
 } from "lucide-react";
 import { GoogleMap, LoadScript, Circle, Marker } from "@react-google-maps/api";
+import { useRouter } from "next/navigation";
 
 const mapContainerStyle = {
   width: "100%",
@@ -49,6 +50,7 @@ export default function CompanyProfilePage() {
     workEndTime: "",
     weeklyOffDays: [],
   });
+  const router = useRouter();
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -281,7 +283,7 @@ export default function CompanyProfilePage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               Company Profile
@@ -290,6 +292,7 @@ export default function CompanyProfilePage() {
               Organization details and configuration
             </p>
           </div>
+
           <div className="flex gap-3">
             {!isEditing ? (
               <button
@@ -385,23 +388,29 @@ export default function CompanyProfilePage() {
             <CardContent>
               {isEditing ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <input
                       type="time"
                       value={formData.workStartTime}
                       onChange={(e) =>
                         handleInputChange("workStartTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-orange-600"
                     />
-                    <span className="text-gray-500">to</span>
+
+                    <span className="text-gray-500 text-center sm:text-left">
+                      to
+                    </span>
+
                     <input
                       type="time"
                       value={formData.workEndTime}
                       onChange={(e) =>
                         handleInputChange("workEndTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-orange-600"
                     />
                   </div>
                 </div>
@@ -502,6 +511,24 @@ export default function CompanyProfilePage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Shift Timings</CardTitle>
+            <CardDescription>
+              Your shift timings can be managed here
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <button
+              onClick={() => router.push("/shifts")}
+              className="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+            >
+              Manage Shift Timings
+            </button>
+          </CardContent>
+        </Card>
 
         {/* Map Section */}
         <Card>

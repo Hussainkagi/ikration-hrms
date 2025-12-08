@@ -203,7 +203,6 @@ export default function RegisterPage() {
       radius: parseInt(location.radius),
       officeAddress: location.address,
       agreementAccepted: true,
-      agreementVersion: 1,
     };
 
     try {

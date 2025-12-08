@@ -49,6 +49,9 @@ export default function ImportEmployeeModal({
       lastName: string;
       email: string;
       mobileNumber: string;
+      role: string;
+      status: string;
+      remote: boolean;
     }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +74,6 @@ export default function ImportEmployeeModal({
         });
         return;
       }
-      // Reset previous state
       setPreviewData([]);
       setImportResult(null);
       setFile(selectedFile);
@@ -117,6 +119,18 @@ export default function ImportEmployeeModal({
             row.Phone ||
             row.PHONE ||
             "",
+          role: row.role || row.Role || row.ROLE || "employee",
+          status: row.status || row.Status || row.STATUS || "active",
+          remote:
+            row.remote === true ||
+            row.remote === "true" ||
+            row.remote === "TRUE" ||
+            row.remote === "True" ||
+            row.Remote === true ||
+            row.Remote === "true" ||
+            row.REMOTE === true ||
+            row.REMOTE === "true" ||
+            false,
         }))
         .filter((emp) => emp.firstName && emp.lastName && emp.email);
 
@@ -152,8 +166,6 @@ export default function ImportEmployeeModal({
         const result = await onImport(file);
         setImportResult(result);
         setIsImporting(false);
-
-        // Don't close modal automatically - let user review results
       } catch (error) {
         setIsImporting(false);
         toast({
@@ -166,7 +178,6 @@ export default function ImportEmployeeModal({
   };
 
   const handleClose = () => {
-    // Prevent closing if import is in progress
     if (isImporting) {
       return;
     }
@@ -187,17 +198,19 @@ export default function ImportEmployeeModal({
         firstName: "John",
         lastName: "Doe",
         email: "john.doe@company.com",
-        mobileNumber: "",
+        mobileNumber: "+1234567890",
         role: "employee",
         status: "active",
+        remote: false,
       },
       {
         firstName: "Jane",
         lastName: "Smith",
         email: "jane.smith@company.com",
-        mobileNumber: "",
-        role: "employee",
+        mobileNumber: "+0987654321",
+        role: "manager",
         status: "active",
+        remote: true,
       },
     ];
 
@@ -428,45 +441,81 @@ export default function ImportEmployeeModal({
                     Preview ({previewData.length} employee
                     {previewData.length !== 1 ? "s" : ""})
                   </h3>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-                    <table className="w-full">
+                  <div className="border border-gray-200 rounded-lg overflow-auto max-h-60">
+                    <table className="w-full min-w-max">
                       <thead className="bg-gray-50 sticky top-0">
                         <tr>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
                             First Name
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
                             Last Name
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
                             Email
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
                             Mobile
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                            Role
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                            Status
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                            Remote
                           </th>
                         </tr>
                       </thead>
                       <tbody>
                         {previewData.slice(0, 10).map((emp, idx) => (
                           <tr key={idx} className="border-t border-gray-100">
-                            <td className="py-2 px-4 text-sm text-gray-900">
+                            <td className="py-2 px-4 text-sm text-gray-900 whitespace-nowrap">
                               {emp.firstName}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-900">
+                            <td className="py-2 px-4 text-sm text-gray-900 whitespace-nowrap">
                               {emp.lastName}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600">
+                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
                               {emp.email}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600">
+                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
                               {emp.mobileNumber || "-"}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+                                {emp.role}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full capitalize ${
+                                  emp.status === "active"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {emp.status}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  emp.remote
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-orange-100 text-orange-800"
+                                }`}
+                              >
+                                {emp.remote ? "Yes" : "No"}
+                              </span>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     {previewData.length > 10 && (
-                      <div className="text-center py-2 text-sm text-gray-500 bg-gray-50">
+                      <div className="text-center py-2 text-sm text-gray-500 bg-gray-50 sticky bottom-0">
                         ... and {previewData.length - 10} more
                       </div>
                     )}
@@ -481,14 +530,20 @@ export default function ImportEmployeeModal({
                 </h4>
                 <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                   <li>
-                    Excel file must contain columns: <strong>firstName</strong>,{" "}
+                    Required columns: <strong>firstName</strong>,{" "}
                     <strong>lastName</strong>, and <strong>email</strong>
                   </li>
                   <li>
-                    Optional column: <strong>mobileNumber</strong> (or phone)
+                    Optional columns: <strong>mobileNumber</strong>,{" "}
+                    <strong>role</strong> (employee/manager/admin),{" "}
+                    <strong>status</strong> (active/inactive),{" "}
+                    <strong>remote</strong> (true/false)
                   </li>
                   <li>Column names are case-insensitive</li>
                   <li>Empty rows will be skipped automatically</li>
+                  <li>
+                    Default values: role=employee, status=active, remote=false
+                  </li>
                 </ul>
               </div>
             </>

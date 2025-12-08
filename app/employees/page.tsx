@@ -13,7 +13,17 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Mail, User, Phone, Upload } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Mail,
+  User,
+  Phone,
+  Upload,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import ImportEmployeeModal from "@/components/import-employee-modal";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
@@ -27,6 +37,20 @@ interface Employee {
   status: string;
   createdAt: string;
   remote: boolean;
+  shiftId: string | null;
+}
+
+interface Shift {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  lateTime: string;
+  days: number[];
+  organizationId: string;
+  isDefault: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -36,6 +60,8 @@ export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
+  const [isSavingEmployee, setIsSavingEmployee] = useState(false);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,6 +70,7 @@ export default function EmployeesPage() {
     role: "employee",
     status: "active",
     remote: false,
+    shiftId: "",
   });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -61,7 +88,7 @@ export default function EmployeesPage() {
     return localStorage.getItem("accessToken");
   };
 
-  // Fetch employees from API
+  // Fetch employees
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -89,15 +116,53 @@ export default function EmployeesPage() {
     }
   };
 
+  // Fetch shifts
+  const fetchShifts = async () => {
+    try {
+      const token = getAuthToken();
+
+      const response = await fetch(`${API_BASE_URL}/shift`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch shifts");
+
+      const data = await response.json();
+      setShifts(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch shifts. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
+    fetchShifts();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingEmployee(true);
 
     try {
       const token = getAuthToken();
+
+      // First, create the employee without shiftId
+      const employeeData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobileNumber: formData.mobileNumber,
+        role: formData.role,
+        status: formData.status,
+        remote: formData.remote,
+      };
 
       const response = await fetch(`${API_BASE_URL}/user`, {
         method: "POST",
@@ -105,16 +170,54 @@ export default function EmployeesPage() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(employeeData),
       });
 
       if (!response.ok) throw new Error("Failed to add employee");
 
-      toast({
-        title: "Employee Added",
-        description: `${formData.firstName} ${formData.lastName} has been added successfully.`,
-      });
+      const newEmployee = await response.json();
 
+      // Check if the selected shift is the default shift
+      const selectedShift = shifts.find((s) => s.id === formData.shiftId);
+      const isDefaultShift = selectedShift?.isDefault === true;
+
+      // If a shift is selected and it's NOT the default shift, assign it using the separate API
+      if (formData.shiftId && !isDefaultShift) {
+        const assignResponse = await fetch(`${API_BASE_URL}/shift/assign`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: newEmployee.id,
+            shiftId: formData.shiftId,
+          }),
+        });
+
+        if (!assignResponse.ok) {
+          // Employee was created but shift assignment failed
+          toast({
+            title: "Warning",
+            description: `${formData.firstName} ${formData.lastName} was added but shift assignment failed.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Employee Added",
+            description: `${formData.firstName} ${formData.lastName} has been added and assigned to shift successfully.`,
+          });
+        }
+      } else {
+        // Employee added without explicit shift assignment (will use default shift)
+        const shiftMessage = isDefaultShift
+          ? " Default shift will be applied automatically."
+          : "";
+        toast({
+          title: "Employee Added",
+          description: `${formData.firstName} ${formData.lastName} has been added successfully.${shiftMessage}`,
+        });
+      }
       // Refresh the employee list
       await fetchEmployees();
 
@@ -127,6 +230,7 @@ export default function EmployeesPage() {
         role: "employee",
         status: "active",
         remote: false,
+        shiftId: "",
       });
     } catch (error) {
       toast({
@@ -134,6 +238,8 @@ export default function EmployeesPage() {
         description: "Failed to save employee. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSavingEmployee(false);
     }
   };
 
@@ -167,7 +273,11 @@ export default function EmployeesPage() {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to delete employee");
+      const data = await response.json(); // ⬅️ Read backend response
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete employee");
+      }
 
       setTimeout(async () => {
         toast({
@@ -175,6 +285,7 @@ export default function EmployeesPage() {
           description: `${deleteConfirmation.employee?.firstName} ${deleteConfirmation.employee?.lastName} has been removed from the system.`,
           variant: "destructive",
         });
+
         await fetchEmployees();
         setDeleteConfirmation({
           isOpen: false,
@@ -182,14 +293,14 @@ export default function EmployeesPage() {
           isDeleting: false,
         });
       }, 800);
-
-      // Close modal
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete employee. Please try again.",
+        description:
+          error.message || "Failed to delete employee. Please try again.",
         variant: "destructive",
       });
+
       setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }));
     }
   };
@@ -204,6 +315,7 @@ export default function EmployeesPage() {
       role: "employee",
       status: "active",
       remote: false,
+      shiftId: "",
     });
   };
 
@@ -219,7 +331,6 @@ export default function EmployeesPage() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          // Don't set Content-Type header - browser will set it with boundary for FormData
         },
         body: formData,
       });
@@ -260,7 +371,6 @@ export default function EmployeesPage() {
         await fetchEmployees();
       }
 
-      // Return the result to the modal
       return result;
     } catch (error) {
       toast({
@@ -274,6 +384,21 @@ export default function EmployeesPage() {
       throw error;
     }
   };
+
+  // Helper function to get shift name by ID
+  const getShiftName = (shiftId: string | null) => {
+    if (!shiftId) return "Not Assigned";
+    const shift = shifts.find((s) => s.id === shiftId);
+    return shift ? shift.name : "Unknown Shift";
+  };
+
+  // Helper function to format shift time
+  const formatShiftTime = (shiftId: string | null) => {
+    if (!shiftId) return "";
+    const shift = shifts.find((s) => s.id === shiftId);
+    return shift ? `${shift.startTime} - ${shift.endTime}` : "";
+  };
+
   // Define columns for CommonTable
   const columns = [
     {
@@ -326,6 +451,26 @@ export default function EmployeesPage() {
       ),
     },
     {
+      key: "shift",
+      header: "Shift",
+      sortable: true,
+      render: (row: Employee) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span className="font-medium text-sm">
+              {getShiftName(row.shiftId)}
+            </span>
+          </div>
+          {row.shiftId && (
+            <span className="text-xs text-gray-500 ml-6">
+              {formatShiftTime(row.shiftId)}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
       key: "status",
       header: "Status",
       sortable: true,
@@ -344,7 +489,7 @@ export default function EmployeesPage() {
     },
     {
       key: "remote",
-      header: "remote",
+      header: "Location",
       sortable: true,
       render: (row: Employee) => (
         <span
@@ -455,6 +600,7 @@ export default function EmployeesPage() {
                         placeholder="John"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
+                        disabled={isSavingEmployee}
                       />
                     </div>
                   </div>
@@ -478,6 +624,7 @@ export default function EmployeesPage() {
                         placeholder="Doe"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
+                        disabled={isSavingEmployee}
                       />
                     </div>
                   </div>
@@ -501,6 +648,7 @@ export default function EmployeesPage() {
                         placeholder="john.doe@company.com"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
+                        disabled={isSavingEmployee}
                       />
                     </div>
                   </div>
@@ -527,6 +675,7 @@ export default function EmployeesPage() {
                         placeholder="+1234567890"
                         className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
+                        disabled={isSavingEmployee}
                       />
                     </div>
                   </div>
@@ -545,6 +694,7 @@ export default function EmployeesPage() {
                         setFormData({ ...formData, role: e.target.value })
                       }
                       className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      disabled={isSavingEmployee}
                     >
                       <option value="employee">Employee</option>
                       <option value="manager">Manager</option>
@@ -566,12 +716,52 @@ export default function EmployeesPage() {
                         setFormData({ ...formData, status: e.target.value })
                       }
                       className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      disabled={isSavingEmployee}
                     >
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                     </select>
                   </div>
+                  <div className="md:col-span-1">
+                    <div className="flex items-center justify-between">
+                      <label
+                        htmlFor="shift"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Assign Shift
+                      </label>
+
+                      {/* Add More Shift Timings Link */}
+                      <span
+                        onClick={() => router.push("/shifts")}
+                        className="text-sm text-orange-600 cursor-pointer hover:underline"
+                      >
+                        Add more shift timings
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <select
+                        id="shift"
+                        value={formData.shiftId}
+                        onChange={(e) =>
+                          setFormData({ ...formData, shiftId: e.target.value })
+                        }
+                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                        disabled={isSavingEmployee}
+                      >
+                        <option value="">No Shift Assigned</option>
+                        {shifts.map((shift) => (
+                          <option key={shift.id} value={shift.id}>
+                            {shift.name} ({shift.startTime} - {shift.endTime})
+                            {shift.isDefault ? " - Default" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Is this employee working remotely?
@@ -587,6 +777,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, remote: true })
                         }
                         className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        disabled={isSavingEmployee}
                       />
                       <span className="ml-2 text-sm text-gray-700">Yes</span>
                     </label>
@@ -600,6 +791,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, remote: false })
                         }
                         className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        disabled={isSavingEmployee}
                       />
                       <span className="ml-2 text-sm text-gray-700">No</span>
                     </label>
@@ -612,17 +804,27 @@ export default function EmployeesPage() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className="h-11 px-6 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
+                    disabled={isSavingEmployee}
+                    className="h-11 px-6 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    Add Employee
+                    {isSavingEmployee ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Adding Employee...
+                      </>
+                    ) : (
+                      "Add Employee"
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="h-11 px-6 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                    disabled={isSavingEmployee}
+                    className="h-11 px-6 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
