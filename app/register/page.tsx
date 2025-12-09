@@ -302,7 +302,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form Container */}
-        <div className="flex-1 flex items-center justify-center px-6 lg:px-16 py-8">
+        <div className="flex-1 flex items-start lg:items-center justify-center px-6 lg:px-16 py-8">
           <div className="w-full max-w-md">
             {/* Header */}
             <div className="mb-6">
@@ -443,6 +443,8 @@ export default function RegisterPage() {
 
                     <button
                       type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onTouchStart={(e) => e.preventDefault()}
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     >
@@ -474,6 +476,8 @@ export default function RegisterPage() {
 
                     <button
                       type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onTouchStart={(e) => e.preventDefault()}
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
