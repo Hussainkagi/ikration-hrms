@@ -386,10 +386,16 @@ export default function EmployeesPage() {
   };
 
   // Helper function to get shift name by ID
-  const getShiftName = (shiftId: string | null) => {
-    if (!shiftId) return "Not Assigned";
-    const shift = shifts.find((s) => s.id === shiftId);
-    return shift ? shift.name : "Unknown Shift";
+  const getShiftName = (row: Employee | any) => {
+    if (row.shiftId) {
+      const shift = shifts.find((s) => s.id === row.shiftId);
+      return shift ? shift.name : "Unknown Shift";
+    }
+
+    // If no shiftId but shift object exists:
+    if (row.shift) return row.shift.name;
+
+    return "Not Assigned";
   };
 
   // Helper function to format shift time
@@ -458,9 +464,7 @@ export default function EmployeesPage() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-gray-400" />
-            <span className="font-medium text-sm">
-              {getShiftName(row.shiftId)}
-            </span>
+            <span className="font-medium text-sm">{getShiftName(row)}</span>
           </div>
           {row.shiftId && (
             <span className="text-xs text-gray-500 ml-6">
