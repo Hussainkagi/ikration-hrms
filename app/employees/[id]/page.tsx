@@ -14,21 +14,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Mail, User, Phone, ArrowLeft, Loader2, Clock } from "lucide-react";
 
-interface EmployeeDetails {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  mobileNumber: string;
-  role: string;
-  status: string;
-  remote: boolean;
-  organizationId: string;
-  shiftId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface Shift {
   id: string;
   name: string;
@@ -40,6 +25,22 @@ interface Shift {
   isDefault: boolean;
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+interface EmployeeDetails {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobileNumber: string;
+  role: string;
+  status: string;
+  remote: boolean;
+  organizationId: string;
+  shiftId: string | null;
+  shift?: Shift; // The actual shift object (could be default or assigned)
+  createdAt: string;
+  updatedAt: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -111,6 +112,8 @@ export default function EmployeeEditPage() {
       const data: EmployeeDetails = await response.json();
       setEmployee(data);
       setOriginalShiftId(data.shiftId);
+
+      // Set form data
       setFormData({
         firstName: data.firstName,
         lastName: data.lastName,
@@ -118,7 +121,7 @@ export default function EmployeeEditPage() {
         mobileNumber: data.mobileNumber,
         status: data.status,
         remote: data.remote || false,
-        shiftId: data.shiftId || "",
+        shiftId: data.shiftId || "default", // Use "default" when shiftId is null
       });
     } catch (error) {
       toast({
@@ -171,11 +174,11 @@ export default function EmployeeEditPage() {
       }
 
       // Handle shift assignment changes
-      const shiftChanged = formData.shiftId !== (originalShiftId || "");
+      const shiftChanged = formData.shiftId !== (originalShiftId || "default");
 
       if (shiftChanged) {
-        if (formData.shiftId) {
-          // Assign new shift
+        // If user selected a non-default shift, assign it
+        if (formData.shiftId && formData.shiftId !== "default") {
           const assignResponse = await fetch(`${API_BASE_URL}/shift/assign`, {
             method: "POST",
             headers: {
@@ -196,8 +199,6 @@ export default function EmployeeEditPage() {
             });
           }
         }
-        // Note: If you have an unassign endpoint, you can add logic here
-        // for when formData.shiftId is empty but originalShiftId had a value
       }
 
       setTimeout(() => {
@@ -228,11 +229,71 @@ export default function EmployeeEditPage() {
     });
   };
 
-  // Helper function to get shift name by ID
-  const getShiftName = (shiftId: string | null) => {
-    if (!shiftId) return "Not Assigned";
-    const shift = shifts.find((s) => s.id === shiftId);
-    return shift ? shift.name : "Unknown Shift";
+  const handleRemoveShift = async () => {
+    if (!originalShiftId || originalShiftId === "default") {
+      toast({
+        title: "Info",
+        description: "Employee is already using the default shift.",
+        variant: "default",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const token = getAuthToken();
+
+      const response = await fetch(
+        `${API_BASE_URL}/shift/assign/${employeeId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove shift assignment");
+      }
+
+      toast({
+        title: "Shift Removed",
+        description: "Employee has been assigned to the default shift.",
+      });
+
+      // Refresh employee details to get updated shift info
+      await fetchEmployeeDetails();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.message || "Failed to remove shift. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Helper function to get shift display info
+  const getCurrentShiftInfo = () => {
+    // If employee has a specific shiftId assigned (not null and not "default")
+    if (originalShiftId && originalShiftId !== "default") {
+      const shift = shifts.find((s) => s.id === originalShiftId);
+      return shift
+        ? `${shift.name} (${shift.startTime} - ${shift.endTime})`
+        : "Unknown Shift";
+    }
+
+    // If shiftId is null or "default", find and show the default shift
+    const defaultShift = shifts.find((s) => s.isDefault === true);
+    if (defaultShift) {
+      return `${defaultShift.name} (${defaultShift.startTime} - ${defaultShift.endTime})`;
+    }
+
+    return "Not Assigned";
   };
 
   if (loading) {
@@ -405,26 +466,52 @@ export default function EmployeeEditPage() {
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <select
                       id="shift"
-                      value={formData.shiftId}
+                      value={
+                        formData.shiftId === "default" ? "" : formData.shiftId
+                      }
                       onChange={(e) =>
                         setFormData({ ...formData, shiftId: e.target.value })
                       }
                       className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none bg-white"
                       disabled={saving}
                     >
-                      <option value="">No Shift Assigned</option>
-                      {shifts.map((shift) => (
-                        <option key={shift.id} value={shift.id}>
-                          {shift.name} ({shift.startTime} - {shift.endTime})
-                          {shift.isDefault ? " - Default" : ""}
-                        </option>
-                      ))}
+                      <option value="">Select a shift</option>
+                      {shifts
+                        .filter((shift) => !shift.isDefault)
+                        .map((shift) => (
+                          <option key={shift.id} value={shift.id}>
+                            {shift.name} ({shift.startTime} - {shift.endTime})
+                          </option>
+                        ))}
                     </select>
                   </div>
-                  {originalShiftId && (
-                    <p className="mt-2 text-xs text-gray-500">
-                      Current shift: {getShiftName(originalShiftId)}
-                    </p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Current shift: {getCurrentShiftInfo()}
+                  </p>
+                  {!originalShiftId || originalShiftId === "default" ? (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-xs text-blue-700">
+                        💡 This employee is currently using the default shift.
+                        Select a shift above to assign a custom shift.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemoveShift}
+                        disabled={saving}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                      >
+                        Remove Custom Shift & Use Default
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click to remove the custom shift and assign the default
+                        shift
+                      </p>
+                    </div>
                   )}
                 </div>
 
