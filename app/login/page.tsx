@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Building2, Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Building2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,16 +9,16 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const formContainerRef = useRef<HTMLDivElement>(null);
-
-  const router = useRouter();
 
   // Handle input focus to scroll into view on mobile
   useEffect(() => {
     const handleFocus = (e: FocusEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT") {
-        // Small delay to wait for keyboard to appear
         setTimeout(() => {
           target.scrollIntoView({
             behavior: "smooth",
@@ -35,12 +34,19 @@ export default function LoginPage() {
 
   const handleInputChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(""); // Clear error when user types
+    setError("");
+    setSuccessMessage("");
   };
 
   const handleKeyPress = (e: any) => {
     if (e.key === "Enter") {
       handleLogin();
+    }
+  };
+
+  const handleForgotPasswordKeyPress = (e: any) => {
+    if (e.key === "Enter") {
+      handleForgotPassword();
     }
   };
 
@@ -71,7 +77,6 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store auth token and user data
         if (data.accessToken) {
           localStorage.setItem("accessToken", data.accessToken);
         }
@@ -86,7 +91,6 @@ export default function LoginPage() {
           );
         }
 
-        // Redirect to dashboard
         setTimeout(() => {
           window.location.href = "/dashboard";
         }, 1000);
@@ -102,6 +106,57 @@ export default function LoginPage() {
         setIsLoading(false);
       }, 1000);
     }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL || ""}/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: forgotPasswordEmail,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccessMessage(
+          data.message ||
+            "If an account with this email exists, a password reset link has been sent."
+        );
+        setForgotPasswordEmail("");
+      } else {
+        setError(
+          data.message || "Failed to send reset link. Please try again."
+        );
+      }
+    } catch (error) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setError("");
+    setSuccessMessage("");
+    setForgotPasswordEmail("");
   };
 
   return (
@@ -120,122 +175,198 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Form Container - Changed alignment for mobile */}
+        {/* Form Container */}
         <div
           ref={formContainerRef}
           className="flex-1 flex items-start lg:items-center justify-center px-6 lg:px-16 pt-4 pb-8 lg:py-0 overflow-y-auto"
         >
           <div className="w-full max-w-md">
-            {/* Header */}
-            <div className="mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                Welcome back
-              </h1>
-              <p className="text-gray-600">Please enter your details</p>
-            </div>
+            {!showForgotPassword ? (
+              <>
+                {/* Login Form Header */}
+                <div className="mb-6 lg:mb-8">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                    Welcome back
+                  </h1>
+                  <p className="text-gray-600">Please enter your details</p>
+                </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 lg:mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
 
-            {/* Form */}
-            <div className="space-y-4 lg:space-y-5">
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-900"
-                >
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
-                  className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
+                {/* Login Form */}
+                <div className="space-y-4 lg:space-y-5">
+                  {/* Email Field */}
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-900"
+                    >
+                      Email address
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      onKeyPress={handleKeyPress}
+                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
 
-              {/* Password Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-900"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
-                    required
-                    disabled={isLoading}
-                  />
+                  {/* Password Field */}
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-900"
+                    >
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        required
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        disabled={isLoading}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Forgot Password */}
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors disabled:opacity-50"
+                      disabled={isLoading}
+                    >
+                      Forgot password
+                    </button>
+                  </div>
+
+                  {/* Sign In Button */}
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    onClick={handleLogin}
+                    disabled={isLoading}
+                    className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isLoading ? "Signing in..." : "Sign in"}
+                  </button>
+
+                  {/* Sign Up Link */}
+                  <div className="text-center pt-2">
+                    <span className="text-sm text-gray-600">
+                      Don't have an account?{" "}
+                    </span>
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
+                      disabled={isLoading}
+                    >
+                      Sign up
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Forgot Password Form Header */}
+                <div className="mb-6 lg:mb-8">
+                  <button
+                    onClick={handleBackToLogin}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
                     disabled={isLoading}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-sm font-medium">Back to login</span>
+                  </button>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                    Forgot password?
+                  </h1>
+                  <p className="text-gray-600">
+                    No worries, we'll send you reset instructions.
+                  </p>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {successMessage && (
+                  <div className="mb-4 lg:mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-600">{successMessage}</p>
+                  </div>
+                )}
+
+                {/* Forgot Password Form */}
+                <div className="space-y-4 lg:space-y-5">
+                  {/* Email Field */}
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="forgot-email"
+                      className="block text-sm font-medium text-gray-900"
+                    >
+                      Email address
+                    </label>
+                    <input
+                      id="forgot-email"
+                      name="forgot-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => {
+                        setForgotPasswordEmail(e.target.value);
+                        setError("");
+                        setSuccessMessage("");
+                      }}
+                      onKeyPress={handleForgotPasswordKeyPress}
+                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  {/* Reset Password Button */}
+                  <button
+                    onClick={handleForgotPassword}
+                    disabled={isLoading}
+                    className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isLoading ? "Sending..." : "Reset password"}
                   </button>
                 </div>
-              </div>
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors disabled:opacity-50"
-                  disabled={isLoading}
-                >
-                  Forgot password
-                </button>
-              </div>
-
-              {/* Sign In Button */}
-              <button
-                onClick={handleLogin}
-                disabled={isLoading}
-                className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </button>
-
-              {/* Sign Up Link */}
-              <div className="text-center pt-2">
-                <span className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                </span>
-                <button
-                  type="button"
-                  className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
-                  disabled={isLoading}
-                  onClick={() => router.push("/register")}
-                >
-                  Sign up
-                </button>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

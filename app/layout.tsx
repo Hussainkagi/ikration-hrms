@@ -44,7 +44,13 @@ export default function RootLayout({
         <AuthProvider>
           <AppProvider>
             <AuthGuard
-              publicRoutes={["/login", "/register", "/", "/setup-password"]}
+              publicRoutes={[
+                "/login",
+                "/register",
+                "/",
+                "/setup-password",
+                "/reset-password",
+              ]}
             >
               {children}
             </AuthGuard>

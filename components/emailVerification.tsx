@@ -1,23 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Loader2 } from "lucide-react";
 
 interface EmailVerificationProps {
   email: string;
   onVerify: (otp: string) => void;
-  onResend: () => void;
   isLoading?: boolean;
+  baseUrl?: string;
 }
 
 export function EmailVerification({
   email,
   onVerify,
-  onResend,
   isLoading = false,
+  baseUrl = "",
 }: EmailVerificationProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [resendCount, setResendCount] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  const MAX_RESEND_ATTEMPTS = 3;
+  const RESEND_COOLDOWN = 30;
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const handleChange = (index: number, value: string) => {
     // Only allow single digit
@@ -30,6 +46,7 @@ export function EmailVerification({
     newOtp[index] = value;
     setOtp(newOtp);
     setError("");
+    setResendSuccess("");
 
     // Auto-focus next input
     if (value && index < 5) {
@@ -60,6 +77,7 @@ export function EmailVerification({
     });
     setOtp(newOtp);
     setError("");
+    setResendSuccess("");
 
     // Focus the last filled input or the next empty one
     const nextEmptyIndex = newOtp.findIndex((val) => !val);
@@ -75,6 +93,54 @@ export function EmailVerification({
     }
     onVerify(otpString);
   };
+
+  const handleResend = async () => {
+    // if (resendCount >= MAX_RESEND_ATTEMPTS) {
+    //   setError(`Maximum resend attempts (${MAX_RESEND_ATTEMPTS}) reached`);
+    //   return;
+    // }
+
+    if (countdown > 0) {
+      setError(`Please wait ${countdown} seconds before resending`);
+      return;
+    }
+
+    setIsResending(true);
+    setError("");
+    setResendSuccess("");
+
+    try {
+      const response = await fetch(`${baseUrl}/organization/resend-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendCount((prev) => prev + 1);
+        setCountdown(RESEND_COOLDOWN);
+        setResendSuccess(data.message || "OTP sent successfully!");
+        setOtp(["", "", "", "", "", ""]);
+        document.getElementById("otp-0")?.focus();
+      } else {
+        setError(data.message || "Failed to resend OTP. Please try again.");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const isResendDisabled =
+    isLoading ||
+    isResending ||
+    resendCount >= MAX_RESEND_ATTEMPTS ||
+    countdown > 0;
 
   return (
     <div className="space-y-6">
@@ -118,6 +184,14 @@ export function EmailVerification({
           </div>
         )}
 
+        {resendSuccess && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-600 text-center">
+              {resendSuccess}
+            </p>
+          </div>
+        )}
+
         <button
           onClick={handleVerify}
           disabled={isLoading || otp.join("").length !== 6}
@@ -132,11 +206,15 @@ export function EmailVerification({
             Didn't receive the code?{" "}
           </span>
           <button
-            onClick={onResend}
-            disabled={isLoading}
-            className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50"
+            onClick={handleResend}
+            // disabled={isResendDisabled}
+            className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Resend
+            {isResending
+              ? "Sending..."
+              : countdown > 0
+              ? `Resend (${countdown}s)`
+              : "Resend"}
           </button>
         </div>
       </div>
