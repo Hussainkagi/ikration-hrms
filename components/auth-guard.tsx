@@ -11,7 +11,7 @@ interface AuthGuardProps {
 
 export function AuthGuard({
   children,
-  publicRoutes = ["/login", "/register", "/setup-password"],
+  publicRoutes = ["/login", "/register", "/setup-password", "/reset-password"],
 }: AuthGuardProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();

@@ -127,11 +127,20 @@ export default function RegisterPage() {
 
     try {
       const result = await API.checkEmail(formData.email);
-      if (result.exists) {
+
+      if (result.exists && result.isVerified) {
+        // Email exists and is verified - show error
         setError(
           "This email is already registered. Please use a different email or sign in."
         );
+      } else if (result.exists && !result.isVerified) {
+        // Email exists but not verified - send OTP and go to verification
+        await API.resendOTP(formData.email);
+        setTimeout(() => {
+          setCurrentStep(4); // Go directly to OTP verification
+        }, 1000);
       } else {
+        // Email doesn't exist - proceed to company details
         setTimeout(() => {
           setCurrentStep(2);
         }, 1000);
@@ -241,7 +250,6 @@ export default function RegisterPage() {
     }
   };
 
-  // Step 4: OTP verification
   // Step 4: OTP verification
   const handleVerifyOTP = async (otp: string) => {
     setIsLoading(true);
@@ -522,8 +530,8 @@ export default function RegisterPage() {
                 <EmailVerification
                   email={formData.email}
                   onVerify={handleVerifyOTP}
-                  onResend={handleResendOTP}
                   isLoading={isLoading}
+                  baseUrl={process.env.NEXT_PUBLIC_BASE_URL}
                 />
               </>
             )}
