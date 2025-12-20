@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Building2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,6 +14,8 @@ export default function LoginPage() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const formContainerRef = useRef<HTMLDivElement>(null);
+
+  const router = useRouter();
 
   // Handle input focus to scroll into view on mobile
   useEffect(() => {
@@ -288,6 +291,7 @@ export default function LoginPage() {
                       type="button"
                       className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
                       disabled={isLoading}
+                      onClick={() => router.push("/register")}
                     >
                       Sign up
                     </button>
