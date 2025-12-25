@@ -94,10 +94,15 @@ export default function EmployeeTracking() {
     fetchEmployees();
   }, []);
 
-  function extractGoogleDriveFileId(url: string | any) {
-    const regex = /\/d\/(.*?)\/view/;
-    const match = url.match(regex);
-    return match ? match[1] : null; // Returns the ID if found, otherwise null
+  function extractGoogleDriveFileId(url: string): string | null {
+    const patterns = [/\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+
+    return null;
   }
 
   const fetchEmployees = async () => {
