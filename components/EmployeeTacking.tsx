@@ -94,6 +94,12 @@ export default function EmployeeTracking() {
     fetchEmployees();
   }, []);
 
+  function extractGoogleDriveFileId(url: string | any) {
+    const regex = /\/d\/(.*?)\/view/;
+    const match = url.match(regex);
+    return match ? match[1] : null; // Returns the ID if found, otherwise null
+  }
+
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -488,7 +494,9 @@ export default function EmployeeTracking() {
             </div>
             <div className="p-4">
               <img
-                src={selectedImage}
+                src={`https://lh3.googleusercontent.com/d/${extractGoogleDriveFileId(
+                  selectedImage
+                )}=w1000?authuser=1/view`}
                 alt="Employee Selfie"
                 className="w-full h-auto rounded-lg"
               />
