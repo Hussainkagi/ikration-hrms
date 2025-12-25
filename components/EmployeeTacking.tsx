@@ -296,9 +296,7 @@ export default function EmployeeTracking() {
               )}
               {row.checkInSelfie && (
                 <button
-                  onClick={() =>
-                    setSelectedImage(`${BASE_URL}${row.checkInSelfie}`)
-                  }
+                  onClick={() => setSelectedImage(`${row.checkInSelfie}`)}
                   className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
                 >
                   <ImageIcon className="w-3 h-3" />
@@ -337,9 +335,7 @@ export default function EmployeeTracking() {
               )}
               {row.checkOutSelfie && (
                 <button
-                  onClick={() =>
-                    setSelectedImage(`${BASE_URL}${row.checkOutSelfie}`)
-                  }
+                  onClick={() => setSelectedImage(`${row.checkOutSelfie}`)}
                   className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
                 >
                   <ImageIcon className="w-3 h-3" />
