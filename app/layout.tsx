@@ -50,6 +50,7 @@ export default function RootLayout({
                 "/",
                 "/setup-password",
                 "/reset-password",
+                "/policy",
               ]}
             >
               {children}
