@@ -584,7 +584,7 @@ export default function PrivacyPolicy() {
                   <span className="font-medium text-gray-900">
                     Response Time:
                   </span>{" "}
-                  We aim to respond to all inquiries within 48 business hours
+                  We aim to r espond to all inquiries within 48 business hours
                 </p>
               </div>
             </section>
