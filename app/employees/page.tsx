@@ -173,7 +173,10 @@ export default function EmployeesPage() {
         body: JSON.stringify(employeeData),
       });
 
-      if (!response.ok) throw new Error("Failed to add employee");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.message || "Something went wrong");
+      }
 
       const newEmployee = await response.json();
 
@@ -232,10 +235,10 @@ export default function EmployeesPage() {
         remote: false,
         shiftId: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to save employee. Please try again.",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     } finally {
