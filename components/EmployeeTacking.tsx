@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard-layout";
 import {
   Card,
@@ -24,9 +24,16 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  FileText,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import CommonTable from "@/components/ui/commonTable";
+import AttendanceDetailedReport from "@/components/reportingComponents/AttendenceDetailed";
+import HeadcountReport from "@/components/reportingComponents/HeadCountReport";
+import PunctualityReport from "@/components/reportingComponents/PunctualityRatio";
+import WorkingHoursReport from "@/components/reportingComponents/WorkingHoursReport";
+import CheckInOutReport from "@/components/reportingComponents/CheckinoutRatio";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
@@ -78,14 +85,28 @@ interface AttendanceRecord {
   updatedAt: string;
 }
 
+type ReportType =
+  | "casual"
+  | "detailed"
+  | "headcount"
+  | "punctuality"
+  | "workinghours"
+  | "checkinout";
+
 export default function EmployeeTracking() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const [reportType, setReportType] = useState<ReportType>("casual");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
+  const [detailedReportData, setDetailedReportData] = useState<any>(null);
+  const [headcountData, setHeadcountData] = useState<any>(null);
+  const [punctualityData, setPunctualityData] = useState<any>(null);
+  const [workingHoursData, setWorkingHoursData] = useState<any>(null);
+  const [checkInOutData, setCheckInOutData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingEmployees, setFetchingEmployees] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -186,8 +207,250 @@ export default function EmployeeTracking() {
     }
   };
 
+  const fetchDetailedReport = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (selectedEmployee) params.append("employeeId", selectedEmployee);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const queryString = params.toString();
+      const url = `${BASE_URL}/attendance-reports/detailed${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch detailed report");
+      }
+
+      const data = await response.json();
+      setDetailedReportData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch detailed attendance report.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHeadcountReport = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (selectedEmployee) params.append("employeeId", selectedEmployee);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const queryString = params.toString();
+      const url = `${BASE_URL}/attendance-reports/headcount${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch headcount report");
+      }
+
+      const data = await response.json();
+      setHeadcountData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch headcount report.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPunctualityReport = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (selectedEmployee) params.append("employeeId", selectedEmployee);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const queryString = params.toString();
+      const url = `${BASE_URL}/attendance-reports/punctuality-ratio${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch punctuality report");
+      }
+
+      const data = await response.json();
+      setPunctualityData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch punctuality report.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchWorkingHoursReport = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (selectedEmployee) params.append("employeeId", selectedEmployee);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const queryString = params.toString();
+      const url = `${BASE_URL}/attendance-reports/working-hours${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch working hours report");
+      }
+
+      const data = await response.json();
+      setWorkingHoursData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch working hours report.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCheckInOutReport = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (selectedEmployee) params.append("employeeId", selectedEmployee);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const queryString = params.toString();
+      const url = `${BASE_URL}/attendance-reports/check-in-out-ratio${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch check-in/out report");
+      }
+
+      const data = await response.json();
+      setCheckInOutData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch check-in/out report.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = () => {
-    fetchAttendanceRecords();
+    if (reportType === "casual") {
+      fetchAttendanceRecords();
+    } else if (reportType === "detailed") {
+      fetchDetailedReport();
+    } else if (reportType === "headcount") {
+      fetchHeadcountReport();
+    } else if (reportType === "punctuality") {
+      fetchPunctualityReport();
+    } else if (reportType === "workinghours") {
+      fetchWorkingHoursReport();
+    } else if (reportType === "checkinout") {
+      fetchCheckInOutReport();
+    }
   };
 
   const handleReset = () => {
@@ -195,6 +458,11 @@ export default function EmployeeTracking() {
     setStartDate("");
     setEndDate("");
     setAttendanceRecords([]);
+    setDetailedReportData(null);
+    setHeadcountData(null);
+    setPunctualityData(null);
+    setWorkingHoursData(null);
+    setCheckInOutData(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -380,7 +648,7 @@ export default function EmployeeTracking() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Employee
@@ -396,6 +664,32 @@ export default function EmployeeTracking() {
                         {emp.firstName} {emp.lastName}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Report Type
+                  </label>
+                  <select
+                    value={reportType}
+                    onChange={(e) => {
+                      setReportType(e.target.value as ReportType);
+                      setAttendanceRecords([]);
+                      setDetailedReportData(null);
+                      setHeadcountData(null);
+                      setPunctualityData(null);
+                      setWorkingHoursData(null);
+                      setCheckInOutData(null);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="casual">Casual Report</option>
+                    <option value="detailed">Attendance Detailed Report</option>
+                    <option value="headcount">HeadCount Report</option>
+                    <option value="punctuality">Punctuality Ratio</option>
+                    <option value="workinghours">Working Hours</option>
+                    <option value="checkinout">Check-In/Out Ratio</option>
                   </select>
                 </div>
 
@@ -437,7 +731,11 @@ export default function EmployeeTracking() {
                     </>
                   ) : (
                     <>
-                      <User className="w-4 h-4" />
+                      {reportType === "casual" ? (
+                        <FileText className="w-4 h-4" />
+                      ) : (
+                        <CalendarDays className="w-4 h-4" />
+                      )}
                       View Records
                     </>
                   )}
@@ -456,7 +754,7 @@ export default function EmployeeTracking() {
         </CardContent>
       </Card>
 
-      {!fetchingEmployees && (
+      {!fetchingEmployees && reportType === "casual" && (
         <div className="mt-6">
           <CommonTable
             data={attendanceRecords}
@@ -476,6 +774,42 @@ export default function EmployeeTracking() {
             exportable={true}
             rowClickable={false}
           />
+        </div>
+      )}
+
+      {!fetchingEmployees &&
+        reportType === "detailed" &&
+        detailedReportData && (
+          <div className="mt-6">
+            <AttendanceDetailedReport data={detailedReportData} />
+          </div>
+        )}
+
+      {!fetchingEmployees && reportType === "headcount" && headcountData && (
+        <div className="mt-6">
+          <HeadcountReport data={headcountData} />
+        </div>
+      )}
+
+      {!fetchingEmployees &&
+        reportType === "punctuality" &&
+        punctualityData && (
+          <div className="mt-6">
+            <PunctualityReport data={punctualityData} />
+          </div>
+        )}
+
+      {!fetchingEmployees &&
+        reportType === "workinghours" &&
+        workingHoursData && (
+          <div className="mt-6">
+            <WorkingHoursReport data={workingHoursData} />
+          </div>
+        )}
+
+      {!fetchingEmployees && reportType === "checkinout" && checkInOutData && (
+        <div className="mt-6">
+          <CheckInOutReport data={checkInOutData} />
         </div>
       )}
 
