@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, ChevronLeft, ChevronRight, Download } from "lucide-react";
 
@@ -18,6 +18,8 @@ interface EmployeeAttendance {
 interface DetailedReportData {
   dates: string[];
   employees: EmployeeAttendance[];
+  startDate?: string;
+  endDate?: string;
 }
 
 interface AttendanceDetailedReportProps {
@@ -95,6 +97,33 @@ export default function AttendanceDetailedReport({
   const endIndex = Math.min(startIndex + datesPerPage, data.dates.length);
   const visibleDates = data.dates.slice(startIndex, endIndex);
 
+  const formatDateRange = (startDate?: string, endDate?: string) => {
+    console.log("datag", data);
+    if (!startDate || !endDate) {
+      // Fallback to first and last date from dates array
+      const start = data.dates[0];
+      const end = data.dates[data.dates.length - 1];
+      return formatDateRangeString(start, end);
+    }
+    return formatDateRangeString(startDate, endDate);
+  };
+
+  const formatDateRangeString = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const formatOptions: Intl.DateTimeFormatOptions = {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    };
+
+    const formattedStart = startDate.toLocaleDateString("en-GB", formatOptions);
+    const formattedEnd = endDate.toLocaleDateString("en-GB", formatOptions);
+
+    return `${formattedStart} - ${formattedEnd}`;
+  };
+
   const formatDateHeader = (dateString: string) => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -145,10 +174,15 @@ export default function AttendanceDetailedReport({
           <div className="flex items-center gap-3">
             <Calendar className="w-6 h-6 text-orange-600" />
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Attendance Detailed Report
-              </h2>
-              <p className="text-sm text-gray-500">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Attendance Detailed Report
+                </h2>
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm font-medium rounded-full">
+                  {formatDateRange(data.startDate, data.endDate)}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
                 {data.employees.length} employees • {data.dates.length} days
               </p>
             </div>

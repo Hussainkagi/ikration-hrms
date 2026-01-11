@@ -96,12 +96,17 @@ export default function Sidebar() {
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
               <img src="./tlogo.png" alt="" />
             </div>
-            <span className="text-xl font-bold">
-              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
-                team
+            <div className="flex flex-col">
+              <span className="flex text-sm text-gray-500 text-bold items-end justify-start">
+                Ikration
               </span>
-              <span className="text-gray-700">Book</span>
-            </span>
+              <span className="text-xl font-bold">
+                <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                  team
+                </span>
+                <span className="text-gray-700">Book</span>
+              </span>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -148,12 +153,17 @@ export default function Sidebar() {
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
             <img src="./tlogo.png" alt="" />
           </div>
-          <span className="text-xl font-bold">
-            <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
-              team
+          <div className="flex flex-col">
+            <span className="flex text-sm text-gray-500 text-bold items-end justify-start">
+              Ikration
             </span>
-            <span className="text-gray-700">Book</span>
-          </span>
+            <span className="text-xl font-bold">
+              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                team
+              </span>
+              <span className="text-gray-700">Book</span>
+            </span>
+          </div>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
