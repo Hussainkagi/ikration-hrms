@@ -560,9 +560,7 @@ export default function EmployeeTracking() {
             <>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
-                <span className="font-medium">
-                  {formatTime(row.checkInTime)}
-                </span>
+                <span className="font-medium">{row.checkInTime}</span>
               </div>
               {row.checkInLocation && (
                 <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -599,9 +597,7 @@ export default function EmployeeTracking() {
             <>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
-                <span className="font-medium">
-                  {formatTime(row.checkOutTime)}
-                </span>
+                <span className="font-medium">{row.checkOutTime}</span>
               </div>
               {row.checkOutLocation && (
                 <div className="flex items-center gap-1 text-xs text-gray-500">

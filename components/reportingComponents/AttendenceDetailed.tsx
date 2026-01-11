@@ -28,17 +28,23 @@ const attendanceCodeConfig: Record<
   string,
   { label: string; color: string; bgColor: string; textColor: string }
 > = {
+  P: {
+    label: "Present",
+    color: "bg-green-500",
+    bgColor: "bg-green-50",
+    textColor: "text-green-700",
+  },
   A: {
     label: "Absent",
     color: "bg-red-500",
     bgColor: "bg-red-50",
     textColor: "text-red-700",
   },
-  P: {
-    label: "Present",
-    color: "bg-green-500",
-    bgColor: "bg-green-50",
-    textColor: "text-green-700",
+  HP: {
+    label: "Half-Present",
+    color: "bg-yellow-500",
+    bgColor: "bg-yellow-50",
+    textColor: "text-yellow-700",
   },
   WO: {
     label: "Week Off",
@@ -46,23 +52,35 @@ const attendanceCodeConfig: Record<
     bgColor: "bg-blue-50",
     textColor: "text-blue-700",
   },
-  HD: {
-    label: "Half Day",
-    color: "bg-yellow-500",
-    bgColor: "bg-yellow-50",
-    textColor: "text-yellow-700",
+  "WO/P": {
+    label: "Week Off/Present",
+    color: "bg-teal-500",
+    bgColor: "bg-teal-50",
+    textColor: "text-teal-700",
   },
-  L: {
-    label: "Leave",
-    color: "bg-purple-500",
-    bgColor: "bg-purple-50",
-    textColor: "text-purple-700",
+  "WO/HP": {
+    label: "Week Off/Half-Present",
+    color: "bg-cyan-500",
+    bgColor: "bg-cyan-50",
+    textColor: "text-cyan-700",
   },
   H: {
     label: "Holiday",
     color: "bg-indigo-500",
     bgColor: "bg-indigo-50",
     textColor: "text-indigo-700",
+  },
+  "H/P": {
+    label: "Holiday/Present",
+    color: "bg-violet-500",
+    bgColor: "bg-violet-50",
+    textColor: "text-violet-700",
+  },
+  L: {
+    label: "Leave",
+    color: "bg-purple-500",
+    bgColor: "bg-purple-50",
+    textColor: "text-purple-700",
   },
 };
 

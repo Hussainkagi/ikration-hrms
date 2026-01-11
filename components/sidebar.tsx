@@ -93,10 +93,15 @@ export default function Sidebar() {
         <div className="flex flex-col flex-1 min-h-0">
           {/* Logo */}
           <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
-            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+              <img src="./tlogo.png" alt="" />
             </div>
-            <span className="text-xl font-bold text-gray-900">HRMS</span>
+            <span className="text-xl font-bold">
+              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                team
+              </span>
+              <span className="text-gray-700">Book</span>
+            </span>
           </div>
 
           {/* Navigation */}
@@ -139,11 +144,16 @@ export default function Sidebar() {
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-orange-600 rounded-lg flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <img src="./tlogo.png" alt="" />
           </div>
-          <span className="text-lg font-bold text-gray-900">HRMS</span>
+          <span className="text-xl font-bold">
+            <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+              team
+            </span>
+            <span className="text-gray-700">Book</span>
+          </span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
