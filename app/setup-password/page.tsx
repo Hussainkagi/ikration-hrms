@@ -30,7 +30,7 @@ export default function SetupPasswordPage() {
 
     if (!tokenParam) {
       setError(
-        "Invalid or missing token. Please use the link from your email."
+        "Invalid or missing token. Please use the link from your email.",
       );
     }
   }, []);
@@ -70,7 +70,7 @@ export default function SetupPasswordPage() {
 
     if (!token) {
       setError(
-        "Invalid or missing token. Please use the link from your email."
+        "Invalid or missing token. Please use the link from your email.",
       );
       return;
     }
@@ -90,7 +90,7 @@ export default function SetupPasswordPage() {
             token: token,
             password: formData.password,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -100,7 +100,7 @@ export default function SetupPasswordPage() {
       } else {
         setError(
           data.message ||
-            "Failed to set password. Please try again or request a new link."
+            "Failed to set password. Please try again or request a new link.",
         );
       }
     } catch (error) {
@@ -122,12 +122,20 @@ export default function SetupPasswordPage() {
           {/* Logo */}
           <div className="p-6 lg:p-8">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
+                <img src="./tlogo.png" alt="" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">
-                HRMS Portal
-              </span>
+              <div className="flex flex-col flex-1">
+                <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
+                  Ikration
+                </span>
+                <span className="text-xl font-bold">
+                  <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                    team
+                  </span>
+                  <span className="text-foreground">Book</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -196,12 +204,20 @@ export default function SetupPasswordPage() {
         {/* Logo */}
         <div className="p-6 lg:p-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
+              <img src="./tlogo.png" alt="" />
             </div>
-            <span className="text-xl font-semibold text-gray-900">
-              HRMS Portal
-            </span>
+            <div className="flex flex-col flex-1">
+              <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
+                Ikration
+              </span>
+              <span className="text-xl font-bold">
+                <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                  team
+                </span>
+                <span className="text-foreground">Book</span>
+              </span>
+            </div>
           </div>
         </div>
 

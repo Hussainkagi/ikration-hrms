@@ -273,7 +273,7 @@ export default function EmployeesPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json(); // ⬅️ Read backend response
@@ -431,7 +431,7 @@ export default function EmployeesPage() {
       searchable: true,
       render: (row: Employee) => (
         <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-gray-400" />
+          <Mail className="w-4 h-4 text-muted-foreground" />
           <span>{row.email}</span>
         </div>
       ),
@@ -443,7 +443,7 @@ export default function EmployeesPage() {
       searchable: true,
       render: (row: Employee) => (
         <div className="flex items-center gap-2">
-          <Phone className="w-4 h-4 text-gray-400" />
+          <Phone className="w-4 h-4 text-muted-foreground" />
           <span>{row.mobileNumber}</span>
         </div>
       ),
@@ -454,7 +454,7 @@ export default function EmployeesPage() {
       sortable: true,
       filterable: true,
       render: (row: Employee) => (
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs rounded-full capitalize">
           {row.role}
         </span>
       ),
@@ -466,11 +466,11 @@ export default function EmployeesPage() {
       render: (row: Employee) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-400" />
+            <Clock className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium text-sm">{getShiftName(row)}</span>
           </div>
           {row.shiftId && (
-            <span className="text-xs text-gray-500 ml-6">
+            <span className="text-xs text-muted-foreground ml-6">
               {formatShiftTime(row.shiftId)}
             </span>
           )}
@@ -486,8 +486,8 @@ export default function EmployeesPage() {
         <span
           className={`px-2 py-1 text-xs rounded-full capitalize ${
             row.status === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
+              ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400"
           }`}
         >
           {row.status}
@@ -502,8 +502,8 @@ export default function EmployeesPage() {
         <span
           className={`px-2 py-1 text-xs rounded-full capitalize ${
             row.remote === true
-              ? "bg-green-100 text-green-800"
-              : "bg-orange-100 text-orange-800"
+              ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+              : "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400"
           }`}
         >
           {row.remote ? "Remote" : "Onsite"}
@@ -521,7 +521,7 @@ export default function EmployeesPage() {
               e.stopPropagation();
               handleEdit(row);
             }}
-            className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors"
+            className="p-2 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg transition-colors"
             title="Edit employee"
           >
             <Pencil className="w-4 h-4" />
@@ -531,7 +531,7 @@ export default function EmployeesPage() {
               e.stopPropagation();
               handleDelete(row);
             }}
-            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
             title="Delete employee"
           >
             <Trash2 className="w-4 h-4" />
@@ -546,10 +546,10 @@ export default function EmployeesPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               Employees
             </h1>
-            <p className="text-gray-500 mt-1 text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Manage your employee records
             </p>
           </div>
@@ -557,7 +557,7 @@ export default function EmployeesPage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={() => setIsImportModalOpen(true)}
-                className="bg-white hover:bg-gray-50 text-orange-600 border border-orange-600 w-full sm:w-auto"
+                className="bg-background hover:bg-secondary text-orange-600 border border-orange-600 w-full sm:w-auto"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Import from Excel
@@ -575,10 +575,12 @@ export default function EmployeesPage() {
 
         {/* Add Employee Form */}
         {isAddingEmployee && (
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle>Add New Employee</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-foreground">
+                Add New Employee
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Enter employee details to create a new record
               </CardDescription>
             </CardHeader>
@@ -588,12 +590,12 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       First Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         id="firstName"
                         type="text"
@@ -605,7 +607,7 @@ export default function EmployeesPage() {
                           })
                         }
                         placeholder="John"
-                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -615,12 +617,12 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Last Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         id="lastName"
                         type="text"
@@ -629,7 +631,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, lastName: e.target.value })
                         }
                         placeholder="Doe"
-                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -639,12 +641,12 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         id="email"
                         type="email"
@@ -653,7 +655,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, email: e.target.value })
                         }
                         placeholder="john.doe@company.com"
-                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -663,12 +665,12 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="mobileNumber"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Mobile Number
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         id="mobileNumber"
                         type="tel"
@@ -680,7 +682,7 @@ export default function EmployeesPage() {
                           })
                         }
                         placeholder="+1234567890"
-                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -690,7 +692,7 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="role"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Role
                     </label>
@@ -700,7 +702,7 @@ export default function EmployeesPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, role: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       disabled={isSavingEmployee}
                     >
                       <option value="employee">Employee</option>
@@ -712,7 +714,7 @@ export default function EmployeesPage() {
                   <div>
                     <label
                       htmlFor="status"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Status
                     </label>
@@ -722,7 +724,7 @@ export default function EmployeesPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, status: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       disabled={isSavingEmployee}
                     >
                       <option value="active">Active</option>
@@ -733,7 +735,7 @@ export default function EmployeesPage() {
                     <div className="flex items-center justify-between">
                       <label
                         htmlFor="shift"
-                        className="block text-sm font-medium text-gray-700 mb-2"
+                        className="block text-sm font-medium text-foreground mb-2"
                       >
                         Assign Shift
                       </label>
@@ -741,20 +743,20 @@ export default function EmployeesPage() {
                       {/* Add More Shift Timings Link */}
                       <span
                         onClick={() => router.push("/shifts")}
-                        className="text-sm text-orange-600 cursor-pointer hover:underline"
+                        className="text-sm text-orange-600 dark:text-orange-400 cursor-pointer hover:underline"
                       >
                         Add more shift timings
                       </span>
                     </div>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <select
                         id="shift"
                         value={formData.shiftId}
                         onChange={(e) =>
                           setFormData({ ...formData, shiftId: e.target.value })
                         }
-                        className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none"
                         disabled={isSavingEmployee}
                       >
                         <option value="">No Shift Assigned</option>
@@ -770,7 +772,7 @@ export default function EmployeesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-foreground mb-3">
                     Is this employee working remotely?
                   </label>
                   <div className="flex gap-6">
@@ -786,7 +788,7 @@ export default function EmployeesPage() {
                         className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
                         disabled={isSavingEmployee}
                       />
-                      <span className="ml-2 text-sm text-gray-700">Yes</span>
+                      <span className="ml-2 text-sm text-foreground">Yes</span>
                     </label>
                     <label className="flex items-center cursor-pointer">
                       <input
@@ -800,11 +802,11 @@ export default function EmployeesPage() {
                         className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
                         disabled={isSavingEmployee}
                       />
-                      <span className="ml-2 text-sm text-gray-700">No</span>
+                      <span className="ml-2 text-sm text-foreground">No</span>
                     </label>
                   </div>
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
+                    <p className="text-sm text-blue-800 dark:text-blue-400">
                       <strong>Note:</strong> If set to "Yes", the employee will
                       be able to check-in/check-out even when not within the
                       office location range.
@@ -831,7 +833,7 @@ export default function EmployeesPage() {
                     type="button"
                     onClick={handleCancel}
                     disabled={isSavingEmployee}
-                    className="h-11 px-6 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="h-11 px-6 border border-border bg-background hover:bg-secondary text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

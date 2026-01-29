@@ -29,44 +29,47 @@ export default function ConfirmDeleteModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="relative bg-card border border-border rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Confirm Deletion
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-secondary rounded-lg transition-colors"
             disabled={isDeleting}
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         {/* Body */}
         <div className="p-6">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Are you sure you want to delete{" "}
-            <span className="font-semibold text-gray-900">{employeeName}</span>?
+            <span className="font-semibold text-foreground">
+              {employeeName}
+            </span>
+            ?
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             This action cannot be undone. The employee will be permanently
             removed from the system.
           </p>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 bg-gray-50 ">
+        <div className="flex gap-3 p-6 bg-secondary">
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="flex-1 h-11 px-6 border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-11 px-6 border border-border bg-background hover:bg-secondary text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>

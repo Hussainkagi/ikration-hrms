@@ -168,7 +168,7 @@ export default function ShiftsPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) throw new Error("Failed to delete shift");
@@ -227,8 +227,8 @@ export default function ShiftsPage() {
       filterable: true,
       render: (row: Shift) => (
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
-          <span className="font-medium text-gray-900">{row.name}</span>
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <span className="font-medium text-foreground">{row.name}</span>
         </div>
       ),
     },
@@ -238,8 +238,8 @@ export default function ShiftsPage() {
       sortable: true,
       render: (row: Shift) => (
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-700">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <span className="text-foreground">
             {row.startTime} - {row.endTime}
           </span>
         </div>
@@ -251,7 +251,7 @@ export default function ShiftsPage() {
       sortable: true,
       searchable: true,
       render: (row: Shift) => (
-        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs rounded-full">
           {row.lateTime}
         </span>
       ),
@@ -261,7 +261,7 @@ export default function ShiftsPage() {
       header: "Working Days",
       sortable: false,
       render: (row: Shift) => (
-        <span className="text-sm text-gray-700">{formatDays(row.days)}</span>
+        <span className="text-sm text-foreground">{formatDays(row.days)}</span>
       ),
     },
     {
@@ -275,7 +275,7 @@ export default function ShiftsPage() {
               e.stopPropagation();
               handleEdit(row);
             }}
-            className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors"
+            className="p-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-600 rounded-lg transition-colors"
             title="Edit employee"
           >
             <Pencil className="w-4 h-4" />
@@ -285,7 +285,7 @@ export default function ShiftsPage() {
               e.stopPropagation();
               handleDelete(row);
             }}
-            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded-lg transition-colors"
             title="Delete shift"
           >
             <Trash2 className="w-4 h-4" />
@@ -309,10 +309,10 @@ export default function ShiftsPage() {
           </button>
 
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               Shifts
             </h1>
-            <p className="text-gray-500 mt-1 text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Manage your work shift schedules
             </p>
           </div>
@@ -330,10 +330,12 @@ export default function ShiftsPage() {
 
         {/* Add Shift Form */}
         {isAddingShift && (
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle>Add New Shift</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-card-foreground">
+                Add New Shift
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Create a new shift schedule with working days and hours
               </CardDescription>
             </CardHeader>
@@ -342,7 +344,7 @@ export default function ShiftsPage() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     Shift Name
                   </label>
@@ -354,7 +356,7 @@ export default function ShiftsPage() {
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="e.g., Morning Shift"
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                     required
                   />
                 </div>
@@ -363,7 +365,7 @@ export default function ShiftsPage() {
                   <div>
                     <label
                       htmlFor="startTime"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Start Time
                     </label>
@@ -374,7 +376,7 @@ export default function ShiftsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, startTime: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
                     />
                   </div>
@@ -382,7 +384,7 @@ export default function ShiftsPage() {
                   <div>
                     <label
                       htmlFor="endTime"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       End Time
                     </label>
@@ -393,7 +395,7 @@ export default function ShiftsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, endTime: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
                     />
                   </div>
@@ -401,7 +403,7 @@ export default function ShiftsPage() {
                   <div>
                     <label
                       htmlFor="lateTime"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-medium text-foreground mb-2"
                     >
                       Late Time
                     </label>
@@ -412,14 +414,14 @@ export default function ShiftsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, lateTime: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-foreground mb-3">
                     Working Days
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -431,14 +433,14 @@ export default function ShiftsPage() {
                         className={`px-4 py-2 rounded-lg font-medium transition-all ${
                           formData.days[index] === 1
                             ? "bg-orange-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            : "bg-secondary text-foreground hover:bg-secondary/80"
                         }`}
                       >
                         {day}
                       </button>
                     ))}
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-muted-foreground mt-2">
                     Select the working days for this shift
                   </p>
                 </div>
@@ -453,7 +455,7 @@ export default function ShiftsPage() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="h-11 px-6 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                    className="h-11 px-6 border border-border hover:bg-secondary text-foreground font-medium rounded-lg transition-colors"
                   >
                     Cancel
                   </button>

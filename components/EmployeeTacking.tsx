@@ -486,18 +486,18 @@ export default function EmployeeTracking() {
       { bg: string; text: string; icon: any }
     > = {
       "checked-in": {
-        bg: "bg-blue-100",
-        text: "text-blue-700",
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-400",
         icon: CheckCircle,
       },
       "checked-out": {
-        bg: "bg-green-100",
-        text: "text-green-700",
+        bg: "bg-green-100 dark:bg-green-900/30",
+        text: "text-green-700 dark:text-green-400",
         icon: CheckCircle,
       },
       absent: {
-        bg: "bg-red-100",
-        text: "text-red-700",
+        bg: "bg-red-100 dark:bg-red-900/30",
+        text: "text-red-700 dark:text-red-400",
         icon: XCircle,
       },
     };
@@ -523,15 +523,15 @@ export default function EmployeeTracking() {
       sortable: true,
       render: (row: AttendanceRecord) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-semibold">
+          <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-semibold">
             {row.userId.firstName[0]}
             {row.userId.lastName[0]}
           </div>
           <div>
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-foreground">
               {row.userId.firstName} {row.userId.lastName}
             </p>
-            <p className="text-sm text-gray-500">{row.userId.email}</p>
+            <p className="text-sm text-muted-foreground">{row.userId.email}</p>
           </div>
         </div>
       ),
@@ -545,7 +545,7 @@ export default function EmployeeTracking() {
       sortable: true,
       render: (row: AttendanceRecord) => (
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           <span>{formatDate(row.date)}</span>
         </div>
       ),
@@ -559,11 +559,11 @@ export default function EmployeeTracking() {
           {row.checkInTime ? (
             <>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 <span className="font-medium">{row.checkInTime}</span>
               </div>
               {row.checkInLocation && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
                   <span>
                     {row.checkInLocation.latitude.toFixed(4)},{" "}
@@ -574,7 +574,7 @@ export default function EmployeeTracking() {
               {row.checkInSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkInSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -582,7 +582,7 @@ export default function EmployeeTracking() {
               )}
             </>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-muted-foreground">-</span>
           )}
         </div>
       ),
@@ -596,11 +596,11 @@ export default function EmployeeTracking() {
           {row.checkOutTime ? (
             <>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 <span className="font-medium">{row.checkOutTime}</span>
               </div>
               {row.checkOutLocation && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
                   <span>
                     {row.checkOutLocation.latitude.toFixed(4)},{" "}
@@ -611,7 +611,7 @@ export default function EmployeeTracking() {
               {row.checkOutSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkOutSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -619,7 +619,7 @@ export default function EmployeeTracking() {
               )}
             </>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-muted-foreground">-</span>
           )}
         </div>
       ),
@@ -635,24 +635,26 @@ export default function EmployeeTracking() {
 
   return (
     <>
-      <Card>
+      <Card className="bg-card border-border">
         <CardContent className="space-y-4">
           {fetchingEmployees ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
-              <span className="ml-2 text-gray-600">Loading employees...</span>
+              <span className="ml-2 text-muted-foreground">
+                Loading employees...
+              </span>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Select Employee
                   </label>
                   <select
                     value={selectedEmployee}
                     onChange={(e) => setSelectedEmployee(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="">All Employees</option>
                     {employees.map((emp) => (
@@ -664,7 +666,7 @@ export default function EmployeeTracking() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Report Type
                   </label>
                   <select
@@ -678,7 +680,7 @@ export default function EmployeeTracking() {
                       setWorkingHoursData(null);
                       setCheckInOutData(null);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="casual">Casual Report</option>
                     <option value="detailed">Attendance Detailed Report</option>
@@ -690,26 +692,26 @@ export default function EmployeeTracking() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
               </div>
@@ -740,7 +742,7 @@ export default function EmployeeTracking() {
                 <button
                   onClick={handleReset}
                   disabled={loading}
-                  className="px-6 py-4 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-4 sm:py-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Reset
                 </button>
@@ -815,22 +817,22 @@ export default function EmployeeTracking() {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
+            className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900">Selfie</h3>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-bold text-foreground">Selfie</h3>
               <button
                 onClick={() => setSelectedImage(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-4">
               <img
                 src={`https://lh3.googleusercontent.com/d/${extractGoogleDriveFileId(
-                  selectedImage
+                  selectedImage,
                 )}=w1000?authuser=1/view`}
                 alt="Employee Selfie"
                 className="w-full h-auto rounded-lg"

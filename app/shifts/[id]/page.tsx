@@ -147,7 +147,7 @@ export default function EditShiftPage() {
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
-            <p className="text-gray-500">Loading shift data...</p>
+            <p className="text-muted-foreground">Loading shift data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -162,29 +162,29 @@ export default function EditShiftPage() {
             <div className="flex items-center gap-3 mb-2">
               <button
                 onClick={() => router.push("/shifts")}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
                 title="Back to shifts"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+                <ArrowLeft className="w-5 h-5 text-muted-foreground" />
               </button>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Edit Shift
               </h1>
             </div>
-            <p className="text-gray-500 text-sm sm:text-base ml-14">
+            <p className="text-muted-foreground text-sm sm:text-base ml-14">
               Update shift schedule and working days
             </p>
           </div>
         </div>
 
         {/* Edit Shift Form */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
               <Clock className="w-5 h-5 text-orange-600" />
               Shift Information
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Modify the shift details and save changes
             </CardDescription>
           </CardHeader>
@@ -193,7 +193,7 @@ export default function EditShiftPage() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Shift Name
                 </label>
@@ -205,7 +205,7 @@ export default function EditShiftPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="e.g., Morning Shift"
-                  className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                  className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                 />
               </div>
 
@@ -213,7 +213,7 @@ export default function EditShiftPage() {
                 <div>
                   <label
                     htmlFor="startTime"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     Start Time
                   </label>
@@ -224,14 +224,14 @@ export default function EditShiftPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, startTime: e.target.value })
                     }
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="endTime"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     End Time
                   </label>
@@ -242,14 +242,14 @@ export default function EditShiftPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, endTime: e.target.value })
                     }
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="lateTime"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     Late Time
                   </label>
@@ -260,13 +260,13 @@ export default function EditShiftPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, lateTime: e.target.value })
                     }
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-foreground mb-3">
                   Working Days
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -278,19 +278,19 @@ export default function EditShiftPage() {
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
                         formData.days[index] === 1
                           ? "bg-orange-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          : "bg-secondary text-foreground hover:bg-secondary/80"
                       }`}
                     >
                       {day}
                     </button>
                   ))}
                 </div>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Select the working days for this shift
                 </p>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <button
                   onClick={handleSubmit}
                   disabled={saving}
@@ -311,7 +311,7 @@ export default function EditShiftPage() {
                 <button
                   onClick={handleCancel}
                   disabled={saving}
-                  className="h-11 px-6 border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 text-gray-700 font-medium rounded-lg transition-colors"
+                  className="h-11 px-6 border border-border hover:bg-secondary disabled:bg-secondary/50 text-foreground font-medium rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -321,17 +321,17 @@ export default function EditShiftPage() {
         </Card>
 
         {/* Info Card */}
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Clock className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900 mb-1">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">
                   About Shift Times
                 </h3>
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   The <strong>Start Time</strong> is when the shift begins. The{" "}
                   <strong>Late Time</strong> is the grace period after which an
                   employee will be marked as late. The <strong>End Time</strong>{" "}

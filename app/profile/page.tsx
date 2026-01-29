@@ -16,9 +16,11 @@ import {
   Calendar,
   Shield,
   Activity,
+  Palette,
 } from "lucide-react";
 import { GoogleMap, LoadScript, Circle, Marker } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const mapContainerStyle = {
   width: "100%",
@@ -35,6 +37,7 @@ const circleOptions = {
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
 export default function CompanyProfilePage() {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +122,6 @@ export default function CompanyProfilePage() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data to original profile data
     setFormData({
       companyName: profileData.companyName || "",
       officeAddress: profileData.officeAddress || "",
@@ -219,33 +221,13 @@ export default function CompanyProfilePage() {
     return days[dayNum] || dayNum;
   };
 
-  const getWeeklyOffDays = () => {
-    if (!profileData?.weeklyOffDays || profileData.weeklyOffDays.length === 0) {
-      return "None";
-    }
-
-    const dayNames = [
-      "Sunday", // 0
-      "Monday", // 1
-      "Tuesday", // 2
-      "Wednesday", // 3
-      "Thursday", // 4
-      "Friday", // 5
-      "Saturday", // 6
-    ];
-
-    return profileData.weeklyOffDays
-      .map((day: any) => dayNames[day])
-      .join(", ");
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
+            <p className="mt-4 text-muted-foreground">Loading profile...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -256,14 +238,14 @@ export default function CompanyProfilePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <Card className="max-w-md">
+          <Card className="max-w-md bg-card border-border">
             <CardContent className="pt-6">
               <div className="text-center text-red-600">
                 <p className="font-semibold">Error loading profile</p>
                 <p className="text-sm mt-2">{error}</p>
                 <button
                   onClick={fetchProfileData}
-                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                 >
                   Retry
                 </button>
@@ -285,10 +267,10 @@ export default function CompanyProfilePage() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Company Profile
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-muted-foreground mt-1">
               Organization details and configuration
             </p>
           </div>
@@ -305,7 +287,7 @@ export default function CompanyProfilePage() {
               <>
                 <button
                   onClick={handleCancel}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors font-medium"
                   disabled={updating}
                 >
                   Cancel
@@ -324,24 +306,24 @@ export default function CompanyProfilePage() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Company Name
               </CardTitle>
               <Building2 className="w-5 h-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-card-foreground">
                 {profileData?.companyName}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Organization</p>
+              <p className="text-xs text-muted-foreground mt-1">Organization</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Office Location
               </CardTitle>
               <MapPin className="w-5 h-5 text-blue-600" />
@@ -354,11 +336,11 @@ export default function CompanyProfilePage() {
                   onChange={(e) =>
                     handleInputChange("officeAddress", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
                   placeholder="Enter office address"
                 />
               ) : (
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-card-foreground">
                   {profileData?.officeAddress}
                 </div>
               )}
@@ -367,20 +349,20 @@ export default function CompanyProfilePage() {
                   type="number"
                   value={formData.radius}
                   onChange={(e) => handleInputChange("radius", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-2"
+                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-2"
                   placeholder="Radius in meters"
                 />
               ) : (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Radius: {profileData?.radius}m
                 </p>
               )}
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Work Hours
               </CardTitle>
               <Clock className="w-5 h-5 text-green-600" />
@@ -395,38 +377,36 @@ export default function CompanyProfilePage() {
                       onChange={(e) =>
                         handleInputChange("workStartTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg 
-                 focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
                     />
-
-                    <span className="text-gray-500 text-center sm:text-left">
+                    <span className="text-muted-foreground text-center sm:text-left">
                       to
                     </span>
-
                     <input
                       type="time"
                       value={formData.workEndTime}
                       onChange={(e) =>
                         handleInputChange("workEndTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg 
-                 focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-card-foreground">
                   {formatTime(profileData?.workStartTime)} -{" "}
                   {formatTime(profileData?.workEndTime)}
                 </div>
               )}
-              <p className="text-xs text-gray-500 mt-1">Daily schedule</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Daily schedule
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Weekly Off
               </CardTitle>
               <Calendar className="w-5 h-5 text-purple-600" />
@@ -444,9 +424,9 @@ export default function CompanyProfilePage() {
                           type="checkbox"
                           checked={formData.weeklyOffDays.includes(day)}
                           onChange={() => handleWeeklyOffDaysChange(day)}
-                          className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-600"
+                          className="w-4 h-4 text-orange-600 border-border rounded focus:ring-orange-600"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-foreground">
                           {getDayName(day)}
                         </span>
                       </label>
@@ -459,67 +439,74 @@ export default function CompanyProfilePage() {
                     profileData.weeklyOffDays.map((day: any) => (
                       <span
                         key={day}
-                        className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700 font-medium"
+                        className="px-3 py-1 text-sm rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
                       >
                         {getDayName(day)}
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm">None</span>
+                    <span className="text-muted-foreground text-sm">None</span>
                   )}
                 </div>
               )}
-              <p className="text-xs text-gray-500 mt-1">Days off per week</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Days off per week
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Status
               </CardTitle>
               <Activity className="w-5 h-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold">
                 {profileData?.isActive ? (
                   <span className="text-green-600">Active</span>
                 ) : (
                   <span className="text-red-600">Inactive</span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Organization status</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Organization status
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Agreement
               </CardTitle>
               <Shield className="w-5 h-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold">
                 {profileData?.agreementAccepted ? (
                   <span className="text-green-600">Accepted</span>
                 ) : (
                   <span className="text-yellow-600">Pending</span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Terms & conditions</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Terms & conditions
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Shift Timings</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-card-foreground">
+              Shift Timings
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
               Your shift timings can be managed here
             </CardDescription>
           </CardHeader>
-
           <CardContent>
             <button
               onClick={() => router.push("/shifts")}
@@ -531,15 +518,17 @@ export default function CompanyProfilePage() {
         </Card>
 
         {/* Map Section */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Office Location Map</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-card-foreground">
+              Office Location Map
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
               {isEditing ? (
                 <div className="space-y-2 mt-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
+                      <label className="text-sm font-medium text-muted-foreground">
                         Latitude
                       </label>
                       <input
@@ -549,12 +538,12 @@ export default function CompanyProfilePage() {
                         onChange={(e) =>
                           handleInputChange("latitude", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
+                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
                         placeholder="Latitude"
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
+                      <label className="text-sm font-medium text-muted-foreground">
                         Longitude
                       </label>
                       <input
@@ -564,7 +553,7 @@ export default function CompanyProfilePage() {
                         onChange={(e) =>
                           handleInputChange("longitude", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
+                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
                         placeholder="Longitude"
                       />
                     </div>
@@ -625,44 +614,68 @@ export default function CompanyProfilePage() {
         </Card>
 
         {/* Additional Details */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Organization Details</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-card-foreground">
+              Organization Details
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
               Additional information about the organization
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Organization ID
-                </p>
-                <p className="text-sm text-gray-900 mt-1">{profileData?.id}</p>
-              </div> */}
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   Created Date
                 </p>
-                <p className="text-sm text-gray-900 mt-1">
+                <p className="text-sm text-card-foreground mt-1">
                   {formatDate(profileData?.createdAt)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   Last Updated
                 </p>
-                <p className="text-sm text-gray-900 mt-1">
+                <p className="text-sm text-card-foreground mt-1">
                   {formatDate(profileData?.updatedAt)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Coordinates</p>
-                <p className="text-sm text-gray-900 mt-1">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Coordinates
+                </p>
+                <p className="text-sm text-card-foreground mt-1">
                   {profileData?.latitude?.toFixed(6)},{" "}
                   {profileData?.longitude?.toFixed(6)}
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance Settings */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-card-foreground flex items-center gap-2">
+                  <Palette className="w-5 h-5 text-orange-600" />
+                  Appearance
+                </CardTitle>
+                <CardDescription className="text-muted-foreground mt-1">
+                  Customize your interface theme
+                </CardDescription>
+              </div>
+              <ThemeToggle />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Toggle between light and dark mode to personalize your viewing
+                experience.
+              </p>
             </div>
           </CardContent>
         </Card>

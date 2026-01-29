@@ -22,7 +22,7 @@ const API = {
     const response = await fetch(
       `${
         process.env.NEXT_PUBLIC_BASE_URL
-      }/organization/check-email?email=${encodeURIComponent(email)}`
+      }/organization/check-email?email=${encodeURIComponent(email)}`,
     );
     return await response.json();
   },
@@ -34,7 +34,7 @@ const API = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }
+      },
     );
     return await response.json();
   },
@@ -46,7 +46,7 @@ const API = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
-      }
+      },
     );
     return await response.json();
   },
@@ -58,7 +58,7 @@ const API = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      }
+      },
     );
     return await response.json();
   },
@@ -131,7 +131,7 @@ export default function RegisterPage() {
       if (result.exists && result.isVerified) {
         // Email exists and is verified - show error
         setError(
-          "This email is already registered. Please use a different email or sign in."
+          "This email is already registered. Please use a different email or sign in.",
         );
       } else if (result.exists && !result.isVerified) {
         // Email exists but not verified - send OTP and go to verification
@@ -177,7 +177,7 @@ export default function RegisterPage() {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber) {
       setError(
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       );
       return false;
     }
@@ -300,12 +300,20 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="p-6 lg:p-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
+              <img src="./tlogo.png" alt="" />
             </div>
-            <span className="text-xl font-semibold text-gray-900">
-              HRMS Portal
-            </span>
+            <div className="flex flex-col flex-1">
+              <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
+                Ikration
+              </span>
+              <span className="text-xl font-bold">
+                <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                  team
+                </span>
+                <span className="text-foreground">Book</span>
+              </span>
+            </div>
           </div>
         </div>
 

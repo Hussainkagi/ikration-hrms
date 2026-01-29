@@ -33,56 +33,56 @@ const attendanceCodeConfig: Record<
   P: {
     label: "Present",
     color: "bg-green-500",
-    bgColor: "bg-green-50",
-    textColor: "text-green-700",
+    bgColor: "bg-green-50 dark:bg-green-900/30",
+    textColor: "text-green-700 dark:text-green-400",
   },
   A: {
     label: "Absent",
     color: "bg-red-500",
-    bgColor: "bg-red-50",
-    textColor: "text-red-700",
+    bgColor: "bg-red-50 dark:bg-red-900/30",
+    textColor: "text-red-700 dark:text-red-400",
   },
   HP: {
     label: "Half-Present",
     color: "bg-yellow-500",
-    bgColor: "bg-yellow-50",
-    textColor: "text-yellow-700",
+    bgColor: "bg-yellow-50 dark:bg-yellow-900/30",
+    textColor: "text-yellow-700 dark:text-yellow-400",
   },
   WO: {
     label: "Week Off",
     color: "bg-blue-500",
-    bgColor: "bg-blue-50",
-    textColor: "text-blue-700",
+    bgColor: "bg-blue-50 dark:bg-blue-900/30",
+    textColor: "text-blue-700 dark:text-blue-400",
   },
   "WO/P": {
     label: "Week Off/Present",
     color: "bg-teal-500",
-    bgColor: "bg-teal-50",
-    textColor: "text-teal-700",
+    bgColor: "bg-teal-50 dark:bg-teal-900/30",
+    textColor: "text-teal-700 dark:text-teal-400",
   },
   "WO/HP": {
     label: "Week Off/Half-Present",
     color: "bg-cyan-500",
-    bgColor: "bg-cyan-50",
-    textColor: "text-cyan-700",
+    bgColor: "bg-cyan-50 dark:bg-cyan-900/30",
+    textColor: "text-cyan-700 dark:text-cyan-400",
   },
   H: {
     label: "Holiday",
     color: "bg-indigo-500",
-    bgColor: "bg-indigo-50",
-    textColor: "text-indigo-700",
+    bgColor: "bg-indigo-50 dark:bg-indigo-900/30",
+    textColor: "text-indigo-700 dark:text-indigo-400",
   },
   "H/P": {
     label: "Holiday/Present",
     color: "bg-violet-500",
-    bgColor: "bg-violet-50",
-    textColor: "text-violet-700",
+    bgColor: "bg-violet-50 dark:bg-violet-900/30",
+    textColor: "text-violet-700 dark:text-violet-400",
   },
   L: {
     label: "Leave",
     color: "bg-purple-500",
-    bgColor: "bg-purple-50",
-    textColor: "text-purple-700",
+    bgColor: "bg-purple-50 dark:bg-purple-900/30",
+    textColor: "text-purple-700 dark:text-purple-400",
   },
 };
 
@@ -168,21 +168,21 @@ export default function AttendanceDetailedReport({
   };
 
   return (
-    <Card>
+    <Card className="bg-card border-border">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-6 h-6 text-orange-600" />
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-foreground">
                   Attendance Detailed Report
                 </h2>
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm font-medium rounded-full">
                   {formatDateRange(data.startDate, data.endDate)}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {data.employees.length} employees • {data.dates.length} days
               </p>
             </div>
@@ -202,7 +202,7 @@ export default function AttendanceDetailedReport({
           {Object.entries(attendanceCodeConfig).map(([code, config]) => (
             <div key={code} className="flex items-center gap-2">
               <div className={`w-4 h-4 rounded ${config.color}`}></div>
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-foreground">
                 {code} - {config.label}
               </span>
             </div>
@@ -214,13 +214,13 @@ export default function AttendanceDetailedReport({
           <button
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-border bg-card text-foreground rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
           </button>
 
-          <div className="text-sm font-medium text-gray-700">
+          <div className="text-sm font-medium text-foreground">
             Showing {startIndex + 1} - {endIndex} of {data.dates.length} days
           </div>
 
@@ -229,7 +229,7 @@ export default function AttendanceDetailedReport({
               setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
             }
             disabled={currentPage === totalPages - 1}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-border bg-card text-foreground rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
             <ChevronRight className="w-4 h-4" />
@@ -237,17 +237,17 @@ export default function AttendanceDetailedReport({
         </div>
 
         {/* Attendance Calendar */}
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <div className="overflow-x-auto border border-border rounded-lg">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-700 border-r border-gray-200 min-w-[100px]">
+              <tr className="bg-secondary">
+                <th className="sticky left-0 z-20 bg-secondary px-4 py-3 text-left text-xs font-semibold text-foreground border-r border-border min-w-[100px]">
                   Emp No
                 </th>
-                <th className="sticky left-[100px] z-20 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-700 border-r border-gray-200 min-w-[180px]">
+                <th className="sticky left-[100px] z-20 bg-secondary px-4 py-3 text-left text-xs font-semibold text-foreground border-r border-border min-w-[180px]">
                   Employee Name
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-r border-gray-200 min-w-[120px]">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground border-r border-border min-w-[120px]">
                   Shift
                 </th>
                 {visibleDates.map((date) => {
@@ -255,11 +255,11 @@ export default function AttendanceDetailedReport({
                   return (
                     <th
                       key={date}
-                      className="px-2 py-3 text-center text-xs font-semibold text-gray-700 border-r border-gray-200 min-w-[50px]"
+                      className="px-2 py-3 text-center text-xs font-semibold text-foreground border-r border-border min-w-[50px]"
                     >
                       <div className="flex flex-col items-center">
-                        <span className="text-gray-500">{dayName}</span>
-                        <span className="text-gray-900 font-bold">{day}</span>
+                        <span className="text-muted-foreground">{dayName}</span>
+                        <span className="text-foreground font-bold">{day}</span>
                       </div>
                     </th>
                   );
@@ -270,15 +270,15 @@ export default function AttendanceDetailedReport({
               {data.employees.map((employee, idx) => (
                 <tr
                   key={employee.empNo}
-                  className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  className={idx % 2 === 0 ? "bg-card" : "bg-secondary/50"}
                 >
-                  <td className="sticky left-0 z-10 bg-inherit px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-200">
+                  <td className="sticky left-0 z-10 bg-inherit px-4 py-3 text-sm font-medium text-foreground border-r border-border">
                     {employee.empNo}
                   </td>
-                  <td className="sticky left-[100px] z-10 bg-inherit px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                  <td className="sticky left-[100px] z-10 bg-inherit px-4 py-3 text-sm text-foreground border-r border-border">
                     <div className="font-medium">{employee.name}</div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 border-r border-gray-200">
+                  <td className="px-4 py-3 text-sm text-muted-foreground border-r border-border">
                     {employee.shift}
                   </td>
                   {visibleDates.map((date) => {
@@ -290,7 +290,7 @@ export default function AttendanceDetailedReport({
                     return (
                       <td
                         key={date}
-                        className="px-2 py-3 text-center border-r border-gray-200"
+                        className="px-2 py-3 text-center border-r border-border"
                       >
                         {attendance ? (
                           <div
@@ -300,7 +300,7 @@ export default function AttendanceDetailedReport({
                             {attendance.code}
                           </div>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </td>
                     );
@@ -313,25 +313,25 @@ export default function AttendanceDetailedReport({
 
         {/* Summary Section */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Attendance Summary
           </h3>
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <div className="overflow-x-auto border border-border rounded-lg">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-r border-gray-200">
+                <tr className="bg-secondary">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground border-r border-border">
                     Employee
                   </th>
                   {Object.entries(attendanceCodeConfig).map(
                     ([code, config]) => (
                       <th
                         key={code}
-                        className="px-4 py-3 text-center text-xs font-semibold text-gray-700 border-r border-gray-200"
+                        className="px-4 py-3 text-center text-xs font-semibold text-foreground border-r border-border"
                       >
                         {code}
                       </th>
-                    )
+                    ),
                   )}
                 </tr>
               </thead>
@@ -341,15 +341,15 @@ export default function AttendanceDetailedReport({
                   return (
                     <tr
                       key={employee.empNo}
-                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      className={idx % 2 === 0 ? "bg-card" : "bg-secondary/50"}
                     >
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-200">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground border-r border-border">
                         {employee.name}
                       </td>
                       {Object.keys(attendanceCodeConfig).map((code) => (
                         <td
                           key={code}
-                          className="px-4 py-3 text-center text-sm text-gray-700 border-r border-gray-200"
+                          className="px-4 py-3 text-center text-sm text-foreground border-r border-border"
                         >
                           {summary[code] || 0}
                         </td>

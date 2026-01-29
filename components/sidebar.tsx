@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   {
@@ -83,35 +84,35 @@ export default function Sidebar() {
 
   // Filter navigation based on user role
   const filteredNavigation = navigation.filter(
-    (item) => user?.role && item.roles.includes(user.role)
+    (item) => user?.role && item.roles.includes(user.role),
   );
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-white border-r border-gray-200">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-card border-r border-border">
         <div className="flex flex-col flex-1 min-h-0">
           {/* Logo */}
-          <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-3 h-16 px-6 border-b border-border">
+            <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
               <img src="./tlogo.png" alt="" />
             </div>
-            <div className="flex flex-col">
-              <span className="flex text-sm text-gray-500 text-bold items-end justify-start">
+            <div className="flex flex-col flex-1">
+              <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
                 Ikration
               </span>
               <span className="text-xl font-bold">
                 <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
                   team
                 </span>
-                <span className="text-gray-700">Book</span>
+                <span className="text-foreground">Book</span>
               </span>
             </div>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
               Main Navigation
             </div>
             {filteredNavigation.map((item) => {
@@ -123,8 +124,8 @@ export default function Sidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all no-underline ${
                     isActive
-                      ? "bg-orange-50 text-orange-600 font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-medium"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                   style={{ textDecoration: "none" }}
                 >
@@ -135,10 +136,10 @@ export default function Sidebar() {
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-border">
             <button
               onClick={openLogoutDialog}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-all w-full font-medium"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all w-full font-medium"
             >
               <LogOut className="w-5 h-5" />
               Logout
@@ -148,41 +149,46 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center justify-between px-4 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
             <img src="./tlogo.png" alt="" />
           </div>
           <div className="flex flex-col">
-            <span className="flex text-sm text-gray-500 text-bold items-end justify-start">
+            <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
               Ikration
             </span>
             <span className="text-xl font-bold">
               <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
                 team
               </span>
-              <span className="text-gray-700">Book</span>
+              <span className="text-foreground">Book</span>
             </span>
           </div>
         </div>
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg hover:bg-gray-100"
-        >
-          {isMobileMenuOpen ? (
-            <X className="w-6 h-6 text-gray-700" />
-          ) : (
-            <Menu className="w-6 h-6 text-gray-700" />
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle on Mobile */}
+          {/* <ThemeToggle /> */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg hover:bg-accent"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-foreground" />
+            ) : (
+              <Menu className="w-6 h-6 text-foreground" />
+            )}
+          </button>
+        </div>
       </div>
 
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-white pt-16">
+        <div className="lg:hidden fixed inset-0 z-40 bg-card pt-16">
           <div className="flex flex-col h-[calc(100vh-4rem)]">
             {/* Navigation Links */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-3">
                 Main Navigation
               </div>
               {filteredNavigation.map((item) => {
@@ -195,8 +201,8 @@ export default function Sidebar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       isActive
-                        ? "bg-orange-50 text-orange-600 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-medium"
+                        : "text-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -207,13 +213,13 @@ export default function Sidebar() {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-gray-200 mt-auto">
+            <div className="p-4 border-t border-border mt-auto">
               <button
                 onClick={() => {
                   openLogoutDialog();
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all w-full font-medium"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all w-full font-medium"
               >
                 <LogOut className="w-5 h-5" />
                 Logout
@@ -225,29 +231,26 @@ export default function Sidebar() {
 
       {/* Logout Confirmation Dialog */}
       {isLogoutDialogOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center 
-    bg-gradient-to-b from-black/60 to-black/30 backdrop-blur-sm"
-        >
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 p-6 border border-border">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   Confirm Logout
                 </h3>
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   Are you sure you want to logout? You will be logged out of
                   your account and redirected to the login page.
                 </p>
                 <div className="flex gap-3 justify-end">
                   <button
                     onClick={() => setIsLogoutDialogOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent transition-colors"
                   >
                     Cancel
                   </button>

@@ -74,7 +74,7 @@ export default function LoginPage() {
             email: formData.email,
             password: formData.password,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -90,7 +90,7 @@ export default function LoginPage() {
           localStorage.setItem("userRole", data.user.role);
           localStorage.setItem(
             "userName",
-            `${data.user.firstName} ${data.user.lastName}`
+            `${data.user.firstName} ${data.user.lastName}`,
           );
         }
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
         }, 1000);
       } else {
         setError(
-          data.message || "Login failed. Please check your credentials."
+          data.message || "Login failed. Please check your credentials.",
         );
       }
     } catch (error) {
@@ -132,7 +132,7 @@ export default function LoginPage() {
           body: JSON.stringify({
             email: forgotPasswordEmail,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -140,12 +140,12 @@ export default function LoginPage() {
       if (response.ok) {
         setSuccessMessage(
           data.message ||
-            "If an account with this email exists, a password reset link has been sent."
+            "If an account with this email exists, a password reset link has been sent.",
         );
         setForgotPasswordEmail("");
       } else {
         setError(
-          data.message || "Failed to send reset link. Please try again."
+          data.message || "Failed to send reset link. Please try again.",
         );
       }
     } catch (error) {
@@ -165,16 +165,24 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col bg-background">
         {/* Logo */}
         <div className="p-4 lg:p-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
+              <img src="./tlogo.png" alt="" />
             </div>
-            <span className="text-xl font-semibold text-gray-900">
-              HRMS Portal
-            </span>
+            <div className="flex flex-col flex-1">
+              <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
+                Ikration
+              </span>
+              <span className="text-xl font-bold">
+                <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+                  team
+                </span>
+                <span className="text-foreground">Book</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -188,16 +196,20 @@ export default function LoginPage() {
               <>
                 {/* Login Form Header */}
                 <div className="mb-6 lg:mb-8">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
                     Welcome back
                   </h1>
-                  <p className="text-gray-600">Please enter your details</p>
+                  <p className="text-muted-foreground">
+                    Please enter your details
+                  </p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">{error}</p>
+                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {error}
+                    </p>
                   </div>
                 )}
 
@@ -207,7 +219,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-900"
+                      className="block text-sm font-medium text-foreground"
                     >
                       Email address
                     </label>
@@ -219,7 +231,7 @@ export default function LoginPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                       required
                       disabled={isLoading}
                     />
@@ -229,7 +241,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-gray-900"
+                      className="block text-sm font-medium text-foreground"
                     >
                       Password
                     </label>
@@ -242,14 +254,14 @@ export default function LoginPage() {
                         value={formData.password}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
-                        className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 px-4 pr-12 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                         required
                         disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         disabled={isLoading}
                       >
                         {showPassword ? (
@@ -266,7 +278,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors disabled:opacity-50"
+                      className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium transition-colors disabled:opacity-50"
                       disabled={isLoading}
                     >
                       Forgot password
@@ -284,12 +296,12 @@ export default function LoginPage() {
 
                   {/* Sign Up Link */}
                   <div className="text-center pt-2">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       Don't have an account?{" "}
                     </span>
                     <button
                       type="button"
-                      className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
+                      className="text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors disabled:opacity-50 cursor-pointer"
                       disabled={isLoading}
                       onClick={() => router.push("/register")}
                     >
@@ -304,31 +316,35 @@ export default function LoginPage() {
                 <div className="mb-6 lg:mb-8">
                   <button
                     onClick={handleBackToLogin}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
                     disabled={isLoading}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span className="text-sm font-medium">Back to login</span>
                   </button>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
                     Forgot password?
                   </h1>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     No worries, we'll send you reset instructions.
                   </p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">{error}</p>
+                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {error}
+                    </p>
                   </div>
                 )}
 
                 {/* Success Message */}
                 {successMessage && (
-                  <div className="mb-4 lg:mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-600">{successMessage}</p>
+                  <div className="mb-4 lg:mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      {successMessage}
+                    </p>
                   </div>
                 )}
 
@@ -338,7 +354,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="forgot-email"
-                      className="block text-sm font-medium text-gray-900"
+                      className="block text-sm font-medium text-foreground"
                     >
                       Email address
                     </label>
@@ -354,7 +370,7 @@ export default function LoginPage() {
                         setSuccessMessage("");
                       }}
                       onKeyPress={handleForgotPasswordKeyPress}
-                      className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                       required
                       disabled={isLoading}
                     />
