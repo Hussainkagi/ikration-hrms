@@ -17,6 +17,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "@/contexts/theme-context";
 
 const navigation = [
   {
@@ -55,6 +56,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { colorTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
@@ -95,7 +97,7 @@ export default function Sidebar() {
           {/* Logo */}
           <div className="flex items-center gap-3 h-16 px-6 border-b border-border">
             <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
-              <img src="./tlogo.png" alt="" />
+              <img src="./tlogo.png" alt="Logo" />
             </div>
             <div className="flex flex-col flex-1">
               <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
@@ -124,10 +126,18 @@ export default function Sidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all no-underline ${
                     isActive
-                      ? "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-medium"
+                      ? "font-medium"
                       : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
-                  style={{ textDecoration: "none" }}
+                  style={
+                    isActive
+                      ? {
+                          backgroundColor: `${colorTheme.colors.primary}15`,
+                          color: colorTheme.colors.primary,
+                          textDecoration: "none",
+                        }
+                      : { textDecoration: "none" }
+                  }
                 >
                   <Icon className="w-5 h-5" />
                   {item.name}
@@ -136,7 +146,14 @@ export default function Sidebar() {
             })}
           </nav>
 
-          <div className="p-4 border-t border-border">
+          {/* Theme Toggle and Logout */}
+          <div className="p-4 border-t border-border space-y-2">
+            {/* <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Theme
+              </span>
+              <ThemeToggle />
+            </div> */}
             <button
               onClick={openLogoutDialog}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all w-full font-medium"
@@ -149,29 +166,37 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center justify-between px-4 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
-            <img src="./tlogo.png" alt="" />
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center justify-between px-4 z-[100]">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="w-9 h-9 bg-background rounded-lg flex items-center justify-center flex-shrink-0">
+            <img
+              src="./tlogo.png"
+              alt="Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <div className="flex flex-col">
-            <span className="flex text-sm text-muted-foreground text-bold items-end justify-start">
-              Ikration
-            </span>
-            <span className="text-xl font-bold">
-              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs text-muted-foreground">Ikration</span>
+            <span className="text-lg font-bold truncate">
+              <span
+                className="bg-gradient-to-r bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${colorTheme.colors.primary}, ${colorTheme.colors.secondary})`,
+                }}
+              >
                 team
               </span>
               <span className="text-foreground">Book</span>
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Theme Toggle on Mobile */}
           {/* <ThemeToggle /> */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-accent"
+            className="p-2 rounded-lg hover:bg-accent transition-colors flex-shrink-0"
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
               <X className="w-6 h-6 text-foreground" />
@@ -184,7 +209,7 @@ export default function Sidebar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-card pt-16">
+        <div className="lg:hidden fixed inset-0 z-[90] bg-card pt-16">
           <div className="flex flex-col h-[calc(100vh-4rem)]">
             {/* Navigation Links */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -201,9 +226,17 @@ export default function Sidebar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       isActive
-                        ? "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-medium"
+                        ? "font-medium"
                         : "text-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
+                    style={
+                      isActive
+                        ? {
+                            backgroundColor: `${colorTheme.colors.primary}15`,
+                            color: colorTheme.colors.primary,
+                          }
+                        : {}
+                    }
                   >
                     <Icon className="w-5 h-5" />
                     {item.name}
@@ -231,7 +264,7 @@ export default function Sidebar() {
 
       {/* Logout Confirmation Dialog */}
       {isLogoutDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 p-6 border border-border">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">

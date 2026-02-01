@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, UserCheck, UserX, Clock, MapPin } from "lucide-react";
+import { useTheme } from "@/contexts/theme-context";
 
 // Skeleton Components
 const SkeletonCard = () => (
@@ -90,6 +91,7 @@ export default function DashboardPage() {
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [error, setError] = useState(null);
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+  const { colorTheme } = useTheme();
 
   useEffect(() => {
     const skeletonTimer = setTimeout(() => {
@@ -177,7 +179,22 @@ export default function DashboardPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-destructive">Error: {error}</div>
+          <Card className="max-w-md bg-card border-border">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="font-semibold text-destructive mb-2">
+                  Error loading dashboard
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">{error}</p>
+                <button
+                  onClick={fetchDashboardStats}
+                  className="px-4 py-2 btn-primary rounded-lg transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -202,12 +219,15 @@ export default function DashboardPage() {
 
         {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 md:pb-2 px-4 pt-4 md:px-6 md:pt-6">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                 Total Employees
               </CardTitle>
-              <Users className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+              <Users
+                className="w-4 h-4 md:w-5 md:h-5"
+                style={{ color: colorTheme.colors.primary }}
+              />
             </CardHeader>
             <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
               <div className="text-2xl md:text-3xl font-bold text-card-foreground">
@@ -220,7 +240,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 md:pb-2 px-4 pt-4 md:px-6 md:pt-6">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                 Checked In
@@ -232,12 +252,18 @@ export default function DashboardPage() {
                 {stats?.attendance?.today?.checkedIn || 0}
               </div>
               <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                {attendanceRate}% attendance
+                <span
+                  className="font-semibold"
+                  style={{ color: colorTheme.colors.primary }}
+                >
+                  {attendanceRate}%
+                </span>{" "}
+                attendance
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 md:pb-2 px-4 pt-4 md:px-6 md:pt-6">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                 Checked Out
@@ -249,12 +275,18 @@ export default function DashboardPage() {
                 {stats?.attendance?.today?.checkedOut || 0}
               </div>
               <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                {stats?.attendance?.today?.pending || 0} working
+                <span
+                  className="font-semibold"
+                  style={{ color: colorTheme.colors.primary }}
+                >
+                  {stats?.attendance?.today?.pending || 0}
+                </span>{" "}
+                working
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 md:pb-2 px-4 pt-4 md:px-6 md:pt-6">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                 Avg Hours
@@ -263,7 +295,8 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
               <div className="text-2xl md:text-3xl font-bold text-card-foreground">
-                {stats?.attendance?.averageHours?.toFixed(1) || 0}h
+                {stats?.attendance?.averageHours?.toFixed(1) || 0}
+                <span className="text-base md:text-lg">h</span>
               </div>
               <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
                 Daily average
@@ -289,7 +322,7 @@ export default function DashboardPage() {
                   stats.recentEmployeeActions.slice(0, 4).map((action: any) => (
                     <div
                       key={action.id}
-                      className="flex items-center justify-between p-2.5 md:p-3 bg-secondary/50 rounded-lg"
+                      className="flex items-center justify-between p-2.5 md:p-3 bg-secondary/50 rounded-lg hover:bg-accent transition-colors"
                     >
                       <div className="flex items-center gap-2 md:gap-3">
                         <div
@@ -304,15 +337,27 @@ export default function DashboardPage() {
                             {action.userId.firstName} {action.userId.lastName}
                           </p>
                           <p className="text-xs md:text-sm text-muted-foreground">
-                            {action.action === "check-in"
-                              ? "Checked in"
-                              : "Checked out"}{" "}
+                            <span
+                              style={{
+                                color:
+                                  action.action === "check-in"
+                                    ? "#10B981"
+                                    : "#EF4444",
+                              }}
+                            >
+                              {action.action === "check-in"
+                                ? "Checked in"
+                                : "Checked out"}
+                            </span>{" "}
                             at {formatTime(action.actionTime)}
                           </p>
                         </div>
                       </div>
                       {action.totalHours && (
-                        <div className="text-xs md:text-sm text-muted-foreground">
+                        <div
+                          className="text-xs md:text-sm font-semibold"
+                          style={{ color: colorTheme.colors.primary }}
+                        >
                           {action.totalHours.toFixed(1)}h
                         </div>
                       )}
@@ -342,18 +387,27 @@ export default function DashboardPage() {
                   stats.mapLocations.slice(0, 4).map((loc: any) => (
                     <div
                       key={loc.id}
-                      className="flex items-start gap-2 md:gap-3 p-2.5 md:p-3 bg-secondary/50 rounded-lg"
+                      className="flex items-start gap-2 md:gap-3 p-2.5 md:p-3 bg-secondary/50 rounded-lg hover:bg-accent transition-colors"
                     >
-                      <MapPin className="w-4 h-4 md:w-5 md:h-5 text-orange-600 mt-0.5" />
+                      <MapPin
+                        className="w-4 h-4 md:w-5 md:h-5 mt-0.5"
+                        style={{ color: colorTheme.colors.primary }}
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm md:text-base font-medium text-card-foreground truncate">
                           {loc.userId.firstName} {loc.userId.lastName}
                         </p>
                         <p className="text-xs md:text-sm text-muted-foreground">
-                          Checked in at {formatTime(loc.checkInTime)}
+                          Checked in at{" "}
+                          <span
+                            className="font-semibold"
+                            style={{ color: colorTheme.colors.primary }}
+                          >
+                            {formatTime(loc.checkInTime)}
+                          </span>
                         </p>
                         <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">
-                          {loc.location.latitude.toFixed(4)},{" "}
+                          📍 {loc.location.latitude.toFixed(4)},{" "}
                           {loc.location.longitude.toFixed(4)}
                         </p>
                       </div>
@@ -385,15 +439,24 @@ export default function DashboardPage() {
                 stats.recentAttendance.slice(0, 5).map((record: any) => (
                   <div
                     key={record.id}
-                    className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg"
+                    className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:shadow-md transition-all hover:border-primary/30"
+                    style={{
+                      borderLeftWidth: "4px",
+                      borderLeftColor:
+                        record.status === "checked-in"
+                          ? colorTheme.colors.primary
+                          : "#9CA3AF",
+                    }}
                   >
                     <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
                       <div
-                        className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0 ${
-                          record.status === "checked-in"
-                            ? "bg-green-500"
-                            : "bg-muted"
-                        }`}
+                        className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0`}
+                        style={{
+                          backgroundColor:
+                            record.status === "checked-in"
+                              ? colorTheme.colors.primary
+                              : "#9CA3AF",
+                        }}
                       />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm md:text-base font-medium text-card-foreground truncate">
@@ -405,7 +468,15 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="text-xs md:text-sm font-medium text-card-foreground">
+                      <p
+                        className="text-xs md:text-sm font-semibold"
+                        style={{
+                          color:
+                            record.status === "checked-in"
+                              ? colorTheme.colors.primary
+                              : "#10B981",
+                        }}
+                      >
                         {record.status === "checked-in" ? "Working" : "Done"}
                       </p>
                       <p className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
@@ -417,7 +488,10 @@ export default function DashboardPage() {
                         </p>
                       )}
                       {record.totalHours && (
-                        <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                        <p
+                          className="text-[10px] md:text-xs font-semibold mt-1"
+                          style={{ color: colorTheme.colors.primary }}
+                        >
                           {record.totalHours.toFixed(1)}h
                         </p>
                       )}

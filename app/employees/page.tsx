@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import ImportEmployeeModal from "@/components/import-employee-modal";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import { useTheme } from "@/contexts/theme-context";
 
 interface Employee {
   id: string;
@@ -57,6 +58,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const { colorTheme } = useTheme();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
@@ -276,7 +278,7 @@ export default function EmployeesPage() {
         },
       );
 
-      const data = await response.json(); // ⬅️ Read backend response
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to delete employee");
@@ -454,7 +456,13 @@ export default function EmployeesPage() {
       sortable: true,
       filterable: true,
       render: (row: Employee) => (
-        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs rounded-full capitalize">
+        <span
+          className="px-2 py-1 text-xs rounded-full capitalize"
+          style={{
+            backgroundColor: `${colorTheme.colors.primary}20`,
+            color: colorTheme.colors.primary,
+          }}
+        >
           {row.role}
         </span>
       ),
@@ -466,7 +474,10 @@ export default function EmployeesPage() {
       render: (row: Employee) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
+            <Clock
+              className="w-4 h-4"
+              style={{ color: colorTheme.colors.primary }}
+            />
             <span className="font-medium text-sm">{getShiftName(row)}</span>
           </div>
           {row.shiftId && (
@@ -500,11 +511,18 @@ export default function EmployeesPage() {
       sortable: true,
       render: (row: Employee) => (
         <span
-          className={`px-2 py-1 text-xs rounded-full capitalize ${
+          className="px-2 py-1 text-xs rounded-full capitalize"
+          style={
             row.remote === true
-              ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-              : "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400"
-          }`}
+              ? {
+                  backgroundColor: "#10B98120",
+                  color: "#10B981",
+                }
+              : {
+                  backgroundColor: `${colorTheme.colors.primary}20`,
+                  color: colorTheme.colors.primary,
+                }
+          }
         >
           {row.remote ? "Remote" : "Onsite"}
         </span>
@@ -521,7 +539,11 @@ export default function EmployeesPage() {
               e.stopPropagation();
               handleEdit(row);
             }}
-            className="p-2 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover:shadow-md"
+            style={{
+              backgroundColor: `${colorTheme.colors.primary}15`,
+              color: colorTheme.colors.primary,
+            }}
             title="Edit employee"
           >
             <Pencil className="w-4 h-4" />
@@ -531,7 +553,7 @@ export default function EmployeesPage() {
               e.stopPropagation();
               handleDelete(row);
             }}
-            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors hover:shadow-md"
             title="Delete employee"
           >
             <Trash2 className="w-4 h-4" />
@@ -557,14 +579,20 @@ export default function EmployeesPage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={() => setIsImportModalOpen(true)}
-                className="bg-background hover:bg-secondary text-orange-600 border border-orange-600 w-full sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
+                style={{
+                  backgroundColor: "transparent",
+                  // color: colorTheme.colors.primary,
+                  borderColor: colorTheme.colors.primary,
+                  borderWidth: "1px",
+                }}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Import from Excel
               </Button>
               <Button
                 onClick={() => setIsAddingEmployee(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Employee
@@ -607,7 +635,7 @@ export default function EmployeesPage() {
                           })
                         }
                         placeholder="John"
-                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -631,7 +659,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, lastName: e.target.value })
                         }
                         placeholder="Doe"
-                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -655,7 +683,7 @@ export default function EmployeesPage() {
                           setFormData({ ...formData, email: e.target.value })
                         }
                         placeholder="john.doe@company.com"
-                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -682,7 +710,7 @@ export default function EmployeesPage() {
                           })
                         }
                         placeholder="+1234567890"
-                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                         required
                         disabled={isSavingEmployee}
                       />
@@ -702,7 +730,7 @@ export default function EmployeesPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, role: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       disabled={isSavingEmployee}
                     >
                       <option value="employee">Employee</option>
@@ -724,7 +752,7 @@ export default function EmployeesPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, status: e.target.value })
                       }
-                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       disabled={isSavingEmployee}
                     >
                       <option value="active">Active</option>
@@ -743,7 +771,8 @@ export default function EmployeesPage() {
                       {/* Add More Shift Timings Link */}
                       <span
                         onClick={() => router.push("/shifts")}
-                        className="text-sm text-orange-600 dark:text-orange-400 cursor-pointer hover:underline"
+                        className="text-sm cursor-pointer hover:underline"
+                        style={{ color: colorTheme.colors.primary }}
                       >
                         Add more shift timings
                       </span>
@@ -756,7 +785,7 @@ export default function EmployeesPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, shiftId: e.target.value })
                         }
-                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none"
+                        className="w-full h-11 pl-10 pr-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all appearance-none"
                         disabled={isSavingEmployee}
                       >
                         <option value="">No Shift Assigned</option>
@@ -785,7 +814,10 @@ export default function EmployeesPage() {
                         onChange={() =>
                           setFormData({ ...formData, remote: true })
                         }
-                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        className="w-4 h-4 focus:ring-2 cursor-pointer"
+                        style={{
+                          accentColor: colorTheme.colors.primary,
+                        }}
                         disabled={isSavingEmployee}
                       />
                       <span className="ml-2 text-sm text-foreground">Yes</span>
@@ -799,14 +831,26 @@ export default function EmployeesPage() {
                         onChange={() =>
                           setFormData({ ...formData, remote: false })
                         }
-                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        className="w-4 h-4 focus:ring-2 cursor-pointer"
+                        style={{
+                          accentColor: colorTheme.colors.primary,
+                        }}
                         disabled={isSavingEmployee}
                       />
                       <span className="ml-2 text-sm text-foreground">No</span>
                     </label>
                   </div>
-                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
-                    <p className="text-sm text-blue-800 dark:text-blue-400">
+                  <div
+                    className="mt-3 p-3 border rounded-lg"
+                    style={{
+                      backgroundColor: `${colorTheme.colors.primary}10`,
+                      borderColor: `${colorTheme.colors.primary}30`,
+                    }}
+                  >
+                    <p
+                      className="text-sm"
+                      style={{ color: colorTheme.colors.primary }}
+                    >
                       <strong>Note:</strong> If set to "Yes", the employee will
                       be able to check-in/check-out even when not within the
                       office location range.
@@ -818,7 +862,7 @@ export default function EmployeesPage() {
                   <button
                     type="submit"
                     disabled={isSavingEmployee}
-                    className="h-11 px-6 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="h-11 px-6 btn-primary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {isSavingEmployee ? (
                       <>

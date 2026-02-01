@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Mail, User, Phone, ArrowLeft, Loader2, Clock } from "lucide-react";
+import { useTheme } from "@/contexts/theme-context";
 
 interface Shift {
   id: string;
@@ -38,7 +39,7 @@ interface EmployeeDetails {
   remote: boolean;
   organizationId: string;
   shiftId: string | null;
-  shift?: Shift; // The actual shift object (could be default or assigned)
+  shift?: Shift;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,7 @@ export default function EmployeeEditPage() {
   const router = useRouter();
   const params = useParams();
   const employeeId = params?.id as string;
+  const { colorTheme } = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -121,7 +123,7 @@ export default function EmployeeEditPage() {
         mobileNumber: data.mobileNumber,
         status: data.status,
         remote: data.remote || false,
-        shiftId: data.shiftId || "default", // Use "default" when shiftId is null
+        shiftId: data.shiftId || "default",
       });
     } catch (error) {
       toast({
@@ -301,7 +303,10 @@ export default function EmployeeEditPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-4" />
+            <Loader2
+              className="w-8 h-8 animate-spin mx-auto mb-4"
+              style={{ color: colorTheme.colors.primary }}
+            />
             <p className="text-muted-foreground">Loading employee details...</p>
           </div>
         </div>
@@ -365,7 +370,7 @@ export default function EmployeeEditPage() {
                         })
                       }
                       placeholder="John"
-                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       required
                       disabled={saving}
                     />
@@ -389,7 +394,7 @@ export default function EmployeeEditPage() {
                         setFormData({ ...formData, lastName: e.target.value })
                       }
                       placeholder="Doe"
-                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       required
                       disabled={saving}
                     />
@@ -413,7 +418,7 @@ export default function EmployeeEditPage() {
                         setFormData({ ...formData, email: e.target.value })
                       }
                       placeholder="john.doe@company.com"
-                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       required
                       disabled={saving}
                     />
@@ -440,7 +445,7 @@ export default function EmployeeEditPage() {
                         })
                       }
                       placeholder="+1234567890"
-                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all"
                       required
                       disabled={saving}
                     />
@@ -459,7 +464,8 @@ export default function EmployeeEditPage() {
                     {/* Add More Shift Timings Link */}
                     <span
                       onClick={() => router.push("/shifts")}
-                      className="text-sm text-orange-600 cursor-pointer hover:underline"
+                      className="text-sm cursor-pointer hover:underline"
+                      style={{ color: colorTheme.colors.primary }}
                     >
                       Add more shift timings
                     </span>
@@ -474,7 +480,7 @@ export default function EmployeeEditPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, shiftId: e.target.value })
                       }
-                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none"
+                      className="w-full h-11 pl-10 pr-4 border border-border bg-input text-foreground rounded-lg focus:ring-2 ring-primary focus:border-transparent outline-none transition-all appearance-none"
                       disabled={saving}
                     >
                       <option value="">Select a shift</option>
@@ -488,11 +494,23 @@ export default function EmployeeEditPage() {
                     </select>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Current shift: {getCurrentShiftInfo()}
+                    <span className="font-medium">Current shift:</span>{" "}
+                    <span style={{ color: colorTheme.colors.primary }}>
+                      {getCurrentShiftInfo()}
+                    </span>
                   </p>
                   {!originalShiftId || originalShiftId === "default" ? (
-                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md">
-                      <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <div
+                      className="mt-2 p-2 border rounded-md"
+                      style={{
+                        backgroundColor: `${colorTheme.colors.primary}10`,
+                        borderColor: `${colorTheme.colors.primary}30`,
+                      }}
+                    >
+                      <p
+                        className="text-xs"
+                        style={{ color: colorTheme.colors.primary }}
+                      >
                         💡 This employee is currently using the default shift.
                         Select a shift above to assign a custom shift.
                       </p>
@@ -526,14 +544,19 @@ export default function EmployeeEditPage() {
                       type="button"
                       onClick={toggleStatus}
                       disabled={saving}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                        formData.status === "active"
-                          ? "bg-green-600"
-                          : "bg-secondary"
-                      }`}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+                      style={
+                        {
+                          backgroundColor:
+                            formData.status === "active"
+                              ? "#10B981"
+                              : "var(--secondary)",
+                          "--tw-ring-color": colorTheme.colors.primary,
+                        } as any
+                      }
                     >
                       <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${
                           formData.status === "active"
                             ? "translate-x-7"
                             : "translate-x-1"
@@ -569,7 +592,8 @@ export default function EmployeeEditPage() {
                         onChange={() =>
                           setFormData({ ...formData, remote: true })
                         }
-                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        className="w-4 h-4 focus:ring-2 cursor-pointer"
+                        style={{ accentColor: colorTheme.colors.primary }}
                         disabled={saving}
                       />
                       <span className="ml-2 text-sm text-foreground">Yes</span>
@@ -583,14 +607,24 @@ export default function EmployeeEditPage() {
                         onChange={() =>
                           setFormData({ ...formData, remote: false })
                         }
-                        className="w-4 h-4 text-orange-600 focus:ring-2 focus:ring-orange-600 cursor-pointer"
+                        className="w-4 h-4 focus:ring-2 cursor-pointer"
+                        style={{ accentColor: colorTheme.colors.primary }}
                         disabled={saving}
                       />
                       <span className="ml-2 text-sm text-foreground">No</span>
                     </label>
                   </div>
-                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <p className="text-sm text-blue-800 dark:text-blue-400">
+                  <div
+                    className="mt-3 p-3 border rounded-lg"
+                    style={{
+                      backgroundColor: `${colorTheme.colors.primary}10`,
+                      borderColor: `${colorTheme.colors.primary}30`,
+                    }}
+                  >
+                    <p
+                      className="text-sm"
+                      style={{ color: colorTheme.colors.primary }}
+                    >
                       <strong>Note:</strong> If set to "Yes", the employee will
                       be able to check-in/check-out even when not within the
                       office location range.
@@ -608,7 +642,13 @@ export default function EmployeeEditPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-muted-foreground">Role:</span>
-                      <span className="ml-2 font-medium text-foreground capitalize">
+                      <span
+                        className="ml-2 font-medium capitalize px-2 py-1 rounded"
+                        style={{
+                          backgroundColor: `${colorTheme.colors.primary}15`,
+                          color: colorTheme.colors.primary,
+                        }}
+                      >
                         {employee.role}
                       </span>
                     </div>
@@ -631,11 +671,7 @@ export default function EmployeeEditPage() {
               )}
 
               <div className="flex gap-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
+                <Button type="submit" disabled={saving} className="btn-primary">
                   {saving ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />

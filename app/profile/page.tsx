@@ -21,19 +21,12 @@ import {
 import { GoogleMap, LoadScript, Circle, Marker } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "@/contexts/theme-context";
 
 const mapContainerStyle = {
   width: "100%",
   height: "400px",
   borderRadius: "8px",
-};
-
-const circleOptions = {
-  strokeColor: "#FB923C",
-  strokeOpacity: 0.8,
-  strokeWeight: 2,
-  fillColor: "#FB923C",
-  fillOpacity: 0.2,
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -55,6 +48,7 @@ export default function CompanyProfilePage() {
   });
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
+  const { colorTheme } = useTheme();
 
   useEffect(() => {
     fetchProfileData();
@@ -221,12 +215,23 @@ export default function CompanyProfilePage() {
     return days[dayNum] || dayNum;
   };
 
+  const getCircleOptions = () => ({
+    strokeColor: colorTheme.colors.primary,
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: colorTheme.colors.primary,
+    fillOpacity: 0.2,
+  });
+
   if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+            <div
+              className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto"
+              style={{ borderColor: colorTheme.colors.primary }}
+            ></div>
             <p className="mt-4 text-muted-foreground">Loading profile...</p>
           </div>
         </div>
@@ -245,7 +250,7 @@ export default function CompanyProfilePage() {
                 <p className="text-sm mt-2">{error}</p>
                 <button
                   onClick={fetchProfileData}
-                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  className="mt-4 px-4 py-2 btn-primary rounded-lg transition-colors"
                 >
                   Retry
                 </button>
@@ -279,7 +284,7 @@ export default function CompanyProfilePage() {
             {!isEditing ? (
               <button
                 onClick={handleEdit}
-                className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                className="px-6 py-2 btn-primary rounded-lg font-medium"
               >
                 Edit Profile
               </button>
@@ -295,7 +300,7 @@ export default function CompanyProfilePage() {
                 <button
                   onClick={handleUpdate}
                   disabled={updating}
-                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 btn-primary rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updating ? "Saving..." : "Save Changes"}
                 </button>
@@ -311,7 +316,7 @@ export default function CompanyProfilePage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Company Name
               </CardTitle>
-              <Building2 className="w-5 h-5 text-orange-600" />
+              <Building2 className="w-5 h-5 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-card-foreground">
@@ -336,7 +341,7 @@ export default function CompanyProfilePage() {
                   onChange={(e) =>
                     handleInputChange("officeAddress", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   placeholder="Enter office address"
                 />
               ) : (
@@ -349,7 +354,7 @@ export default function CompanyProfilePage() {
                   type="number"
                   value={formData.radius}
                   onChange={(e) => handleInputChange("radius", e.target.value)}
-                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-2"
+                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-2"
                   placeholder="Radius in meters"
                 />
               ) : (
@@ -377,7 +382,7 @@ export default function CompanyProfilePage() {
                       onChange={(e) =>
                         handleInputChange("workStartTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                     />
                     <span className="text-muted-foreground text-center sm:text-left">
                       to
@@ -388,7 +393,7 @@ export default function CompanyProfilePage() {
                       onChange={(e) =>
                         handleInputChange("workEndTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                     />
                   </div>
                 </div>
@@ -424,7 +429,8 @@ export default function CompanyProfilePage() {
                           type="checkbox"
                           checked={formData.weeklyOffDays.includes(day)}
                           onChange={() => handleWeeklyOffDaysChange(day)}
-                          className="w-4 h-4 text-orange-600 border-border rounded focus:ring-orange-600"
+                          className="w-4 h-4 text-primary border-border rounded ring-primary"
+                          style={{ accentColor: colorTheme.colors.primary }}
                         />
                         <span className="text-sm text-foreground">
                           {getDayName(day)}
@@ -439,7 +445,11 @@ export default function CompanyProfilePage() {
                     profileData.weeklyOffDays.map((day: any) => (
                       <span
                         key={day}
-                        className="px-3 py-1 text-sm rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
+                        className="px-3 py-1 text-sm rounded-full font-medium"
+                        style={{
+                          backgroundColor: `${colorTheme.colors.primary}20`,
+                          color: colorTheme.colors.primary,
+                        }}
                       >
                         {getDayName(day)}
                       </span>
@@ -481,7 +491,7 @@ export default function CompanyProfilePage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Agreement
               </CardTitle>
-              <Shield className="w-5 h-5 text-orange-600" />
+              <Shield className="w-5 h-5 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">
@@ -510,7 +520,7 @@ export default function CompanyProfilePage() {
           <CardContent>
             <button
               onClick={() => router.push("/shifts")}
-              className="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+              className="px-5 py-2 btn-primary rounded-lg font-medium"
             >
               Manage Shift Timings
             </button>
@@ -538,7 +548,7 @@ export default function CompanyProfilePage() {
                         onChange={(e) =>
                           handleInputChange("latitude", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
+                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-1"
                         placeholder="Latitude"
                       />
                     </div>
@@ -553,7 +563,7 @@ export default function CompanyProfilePage() {
                         onChange={(e) =>
                           handleInputChange("longitude", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600 mt-1"
+                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-1"
                         placeholder="Longitude"
                       />
                     </div>
@@ -606,7 +616,7 @@ export default function CompanyProfilePage() {
                       ? parseInt(formData.radius) || 200
                       : profileData?.radius || 200
                   }
-                  options={circleOptions}
+                  options={getCircleOptions()}
                 />
               </GoogleMap>
             </LoadScript>
@@ -660,22 +670,31 @@ export default function CompanyProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-card-foreground flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-orange-600" />
+                  <Palette className="w-5 h-5 text-primary" />
                   Appearance
                 </CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
-                  Customize your interface theme
+                  Customize your interface theme and colors
                 </CardDescription>
               </div>
               <ThemeToggle />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Toggle between light and dark mode to personalize your viewing
-                experience.
+                Toggle between light and dark mode, and choose from a variety of
+                color themes or create your own custom theme.
               </p>
+              <div className="flex items-center gap-2 p-3 bg-accent rounded-lg">
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: colorTheme.colors.primary }}
+                />
+                <span className="text-sm font-medium text-accent-foreground">
+                  Current theme: {colorTheme.name}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>

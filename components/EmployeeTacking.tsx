@@ -34,6 +34,7 @@ import HeadcountReport from "@/components/reportingComponents/HeadCountReport";
 import PunctualityReport from "@/components/reportingComponents/PunctualityRatio";
 import WorkingHoursReport from "@/components/reportingComponents/WorkingHoursReport";
 import CheckInOutReport from "@/components/reportingComponents/CheckinoutRatio";
+import { useTheme } from "@/contexts/theme-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
@@ -94,6 +95,7 @@ type ReportType =
   | "checkinout";
 
 export default function EmployeeTracking() {
+  const { colorTheme } = useTheme();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [reportType, setReportType] = useState<ReportType>("casual");
@@ -523,7 +525,13 @@ export default function EmployeeTracking() {
       sortable: true,
       render: (row: AttendanceRecord) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-semibold">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
+            style={{
+              backgroundColor: `${colorTheme.colors.primary}20`,
+              color: colorTheme.colors.primary,
+            }}
+          >
             {row.userId.firstName[0]}
             {row.userId.lastName[0]}
           </div>
@@ -574,7 +582,8 @@ export default function EmployeeTracking() {
               {row.checkInSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkInSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  className="flex items-center gap-1 text-xs hover:underline"
+                  style={{ color: colorTheme.colors.primary }}
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -611,7 +620,8 @@ export default function EmployeeTracking() {
               {row.checkOutSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkOutSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  className="flex items-center gap-1 text-xs hover:underline"
+                  style={{ color: colorTheme.colors.primary }}
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -639,7 +649,10 @@ export default function EmployeeTracking() {
         <CardContent className="space-y-4">
           {fetchingEmployees ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
+              <Loader2
+                className="w-6 h-6 animate-spin"
+                style={{ color: colorTheme.colors.primary }}
+              />
               <span className="ml-2 text-muted-foreground">
                 Loading employees...
               </span>
@@ -654,7 +667,7 @@ export default function EmployeeTracking() {
                   <select
                     value={selectedEmployee}
                     onChange={(e) => setSelectedEmployee(e.target.value)}
-                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   >
                     <option value="">All Employees</option>
                     {employees.map((emp) => (
@@ -680,7 +693,7 @@ export default function EmployeeTracking() {
                       setWorkingHoursData(null);
                       setCheckInOutData(null);
                     }}
-                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   >
                     <option value="casual">Casual Report</option>
                     <option value="detailed">Attendance Detailed Report</option>
@@ -699,7 +712,7 @@ export default function EmployeeTracking() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   />
                 </div>
 
@@ -711,7 +724,7 @@ export default function EmployeeTracking() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   />
                 </div>
               </div>
@@ -720,7 +733,7 @@ export default function EmployeeTracking() {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="flex-1 md:flex-none px-6 py-4 sm:py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 md:flex-none px-6 py-4 sm:py-2 btn-primary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -820,8 +833,16 @@ export default function EmployeeTracking() {
             className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="text-lg font-bold text-foreground">Selfie</h3>
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: `${colorTheme.colors.primary}30` }}
+            >
+              <h3
+                className="text-lg font-bold"
+                style={{ color: colorTheme.colors.primary }}
+              >
+                Selfie
+              </h3>
               <button
                 onClick={() => setSelectedImage(null)}
                 className="p-2 hover:bg-secondary rounded-lg transition-colors"
