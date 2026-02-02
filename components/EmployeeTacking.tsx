@@ -26,6 +26,7 @@ import {
   Loader2,
   FileText,
   CalendarDays,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import CommonTable from "@/components/ui/commonTable";
@@ -37,6 +38,22 @@ import CheckInOutReport from "@/components/reportingComponents/CheckinoutRatio";
 import { useTheme } from "@/contexts/theme-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
+
+// Common timezones for the dropdown
+const COMMON_TIMEZONES = [
+  { value: "Asia/Dubai", label: "Dubai (UTC+4)" },
+  { value: "Asia/Kolkata", label: "India (UTC+5:30)" },
+  { value: "America/New_York", label: "New York (UTC-5)" },
+  { value: "America/Los_Angeles", label: "Los Angeles (UTC-8)" },
+  { value: "Europe/London", label: "London (UTC+0)" },
+  { value: "Europe/Paris", label: "Paris (UTC+1)" },
+  { value: "Asia/Singapore", label: "Singapore (UTC+8)" },
+  { value: "Asia/Tokyo", label: "Tokyo (UTC+9)" },
+  { value: "Australia/Sydney", label: "Sydney (UTC+11)" },
+  { value: "Asia/Shanghai", label: "Shanghai (UTC+8)" },
+  { value: "Asia/Hong_Kong", label: "Hong Kong (UTC+8)" },
+  { value: "UTC", label: "UTC (UTC+0)" },
+];
 
 interface TrackingRecord {
   id: string;
@@ -101,6 +118,7 @@ export default function EmployeeTracking() {
   const [reportType, setReportType] = useState<ReportType>("casual");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [selectedTimezone, setSelectedTimezone] = useState<string>("");
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
@@ -112,6 +130,12 @@ export default function EmployeeTracking() {
   const [loading, setLoading] = useState(false);
   const [fetchingEmployees, setFetchingEmployees] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Detect user's timezone on component mount
+  useEffect(() => {
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setSelectedTimezone(userTimezone);
+  }, []);
 
   useEffect(() => {
     fetchEmployees();
@@ -180,6 +204,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("userId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance${
@@ -226,6 +251,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/detailed${
@@ -272,6 +298,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/headcount${
@@ -318,6 +345,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/punctuality-ratio${
@@ -364,6 +392,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/working-hours${
@@ -410,6 +439,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (selectedTimezone) params.append("timezone", selectedTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/check-in-out-ratio${
@@ -459,6 +489,8 @@ export default function EmployeeTracking() {
     setSelectedEmployee("");
     setStartDate("");
     setEndDate("");
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setSelectedTimezone(userTimezone);
     setAttendanceRecords([]);
     setDetailedReportData(null);
     setHeadcountData(null);
@@ -501,6 +533,11 @@ export default function EmployeeTracking() {
         bg: "bg-red-100 dark:bg-red-900/30",
         text: "text-red-700 dark:text-red-400",
         icon: XCircle,
+      },
+      "comp-off": {
+        bg: "bg-purple-100 dark:bg-purple-900/30",
+        text: "text-purple-700 dark:text-purple-400",
+        icon: Calendar,
       },
     };
 
@@ -659,7 +696,7 @@ export default function EmployeeTracking() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Select Employee
@@ -701,6 +738,24 @@ export default function EmployeeTracking() {
                     <option value="punctuality">Punctuality Ratio</option>
                     <option value="workinghours">Working Hours</option>
                     <option value="checkinout">Check-In/Out Ratio</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Globe className="w-4 h-4 inline mr-1" />
+                    Timezone
+                  </label>
+                  <select
+                    value={selectedTimezone}
+                    onChange={(e) => setSelectedTimezone(e.target.value)}
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                  >
+                    {COMMON_TIMEZONES.map((tz) => (
+                      <option key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
