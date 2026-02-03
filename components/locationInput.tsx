@@ -375,35 +375,37 @@ export function LocationSetup({
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium transition-colors"
         disabled={isLoading}
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Company Details
       </button>
 
+      {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <MapPin className="w-8 h-8 text-orange-600" />
+        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <MapPin className="w-8 h-8 text-orange-600 dark:text-orange-400" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Office Location Setup
         </h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Set your office location for attendance tracking
         </p>
       </div>
 
+      {/* Error Banner */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
       <div className="space-y-4">
-        {/* Country Selector */}
+        {/* ---------------------------------------------------------- Country Selector */}
         <div className="space-y-2" ref={countryDropdownRef}>
-          <label className="block text-sm font-medium text-gray-900">
+          <label className="block text-sm font-medium text-foreground">
             Country <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -411,35 +413,39 @@ export function LocationSetup({
               type="button"
               onClick={() => setShowCountryDropdown(!showCountryDropdown)}
               disabled={isLoading}
-              className="w-full h-11 px-4 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all text-left flex items-center gap-3 bg-white disabled:opacity-50"
+              className="w-full h-11 px-4 pr-10 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all text-left flex items-center gap-3 disabled:opacity-50"
             >
               {selectedCountry ? (
                 <>
                   <span className="text-2xl">{selectedCountry.flag}</span>
-                  <span className="text-gray-900">{selectedCountry.name}</span>
+                  <span className="text-foreground">
+                    {selectedCountry.name}
+                  </span>
                 </>
               ) : (
                 <>
-                  <Globe className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-500">Select your country</span>
+                  <Globe className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    Select your country
+                  </span>
                 </>
               )}
-              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground absolute right-3" />
             </button>
 
             {/* Country Dropdown */}
             {showCountryDropdown && (
-              <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
                 {/* Search Input */}
-                <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                <div className="p-3 border-b border-border sticky top-0 bg-background">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Search countries..."
                       value={countrySearchQuery}
                       onChange={(e) => setCountrySearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none"
+                      className="w-full pl-9 pr-8 py-2 border border-border bg-background text-foreground rounded-lg text-sm focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none placeholder:text-muted-foreground"
                       onClick={(e) => e.stopPropagation()}
                     />
                     {countrySearchQuery && (
@@ -448,7 +454,7 @@ export function LocationSetup({
                           e.stopPropagation();
                           setCountrySearchQuery("");
                         }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -463,21 +469,21 @@ export function LocationSetup({
                       <button
                         key={country.code}
                         onClick={() => handleSelectCountry(country)}
-                        className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 flex items-center gap-3"
+                        className="w-full px-4 py-3 text-left hover:bg-orange-50 dark:hover:bg-orange-950/60 transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
                       >
                         <span className="text-2xl">{country.flag}</span>
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-foreground">
                             {country.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {country.code} • {country.timezone}
                           </div>
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-8 text-center text-sm text-gray-500">
+                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                       No countries found
                     </div>
                   )}
@@ -486,78 +492,82 @@ export function LocationSetup({
             )}
           </div>
           {selectedCountry && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Timezone: {selectedCountry.timezone}
             </p>
           )}
         </div>
 
-        {/* Get Current Location Button */}
-        <label className="block text-sm font-medium text-gray-900 mb-2 mt-2">
+        {/* ---------------------------------------------------------- Get Current Location */}
+        <label className="block text-sm font-medium text-foreground mb-2 mt-2">
           Your Office / Outlet Location
         </label>
         <button
           onClick={getCurrentLocation}
           disabled={gettingLocation || isLoading}
-          className="w-full h-11 border-2 border-orange-600 text-orange-600 hover:bg-orange-50 font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full h-11 border-2 border-orange-600 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950/60 font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {gettingLocation && <Loader2 className="w-4 h-4 animate-spin" />}
           {gettingLocation ? "Getting Location..." : "Get My Current Location"}
         </button>
 
-        {/* OR Divider */}
+        {/* ---------------------------------------------------------- OR Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500 font-medium">OR</span>
+            <span className="px-4 bg-background text-muted-foreground font-medium">
+              OR
+            </span>
           </div>
         </div>
 
-        {/* Google Places Search */}
+        {/* ---------------------------------------------------------- Google Places Search */}
         <div className="space-y-2 relative" ref={searchRef}>
-          <label className="block text-sm font-medium text-gray-900">
+          <label className="block text-sm font-medium text-foreground">
             Search Location
             {mapsLoaded && (
-              <span className="ml-2 text-xs text-green-600">✓ Ready</span>
+              <span className="ml-2 text-xs text-green-600 dark:text-green-400">
+                ✓ Ready
+              </span>
             )}
             {!mapsLoaded && (
-              <span className="ml-2 text-xs text-orange-600">
+              <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
                 ⏳ Loading...
               </span>
             )}
           </label>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search for your office location..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-              className="w-full h-11 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+              className="w-full h-11 pl-10 pr-10 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
               disabled={isLoading || !mapsLoaded}
             />
-            {searchQuery && (
+            {searchQuery && !isLoadingPlaces && (
               <button
                 onClick={() => {
                   setSearchQuery("");
                   setSuggestions([]);
                   setShowSuggestions(false);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
             {isLoadingPlaces && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-orange-600" />
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-orange-600 dark:text-orange-400" />
             )}
 
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion.place_id}
@@ -567,11 +577,11 @@ export function LocationSetup({
                         suggestion.description,
                       )
                     }
-                    className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 text-sm"
+                    className="w-full px-4 py-3 text-left hover:bg-orange-50 dark:hover:bg-orange-950/60 transition-colors border-b border-border last:border-b-0 text-sm"
                   >
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground">
                         {suggestion.description}
                       </span>
                     </div>
@@ -582,10 +592,10 @@ export function LocationSetup({
           </div>
         </div>
 
-        {/* Manual Coordinates */}
+        {/* ---------------------------------------------------------- Manual Coordinates */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-900">
+            <label className="block text-sm font-medium text-foreground">
               Latitude <span className="text-red-500">*</span>
             </label>
             <input
@@ -597,12 +607,12 @@ export function LocationSetup({
                 setLocation({ ...location, latitude: e.target.value });
                 setError("");
               }}
-              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+              className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-900">
+            <label className="block text-sm font-medium text-foreground">
               Longitude <span className="text-red-500">*</span>
             </label>
             <input
@@ -614,15 +624,15 @@ export function LocationSetup({
                 setLocation({ ...location, longitude: e.target.value });
                 setError("");
               }}
-              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+              className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
               disabled={isLoading}
             />
           </div>
         </div>
 
-        {/* Office Address */}
+        {/* ---------------------------------------------------------- Office Address */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-900">
+          <label className="block text-sm font-medium text-foreground">
             Office Address <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -633,14 +643,14 @@ export function LocationSetup({
               setError("");
             }}
             rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all resize-none"
+            className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all resize-none placeholder:text-muted-foreground"
             disabled={isLoading}
           />
         </div>
 
-        {/* Geofence Radius */}
+        {/* ---------------------------------------------------------- Geofence Radius */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-900">
+          <label className="block text-sm font-medium text-foreground">
             Geofence Radius (meters) <span className="text-red-500">*</span>
           </label>
           <input
@@ -651,15 +661,15 @@ export function LocationSetup({
               setLocation({ ...location, radius: e.target.value });
               setError("");
             }}
-            className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+            className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
             disabled={isLoading}
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Set the radius for geofencing (minimum 10 meters)
           </p>
         </div>
 
-        {/* Agreement Checkbox */}
+        {/* ---------------------------------------------------------- Agreement Checkbox */}
         <AgreementCheckbox
           isChecked={hasAgreed}
           onCheckedChange={(checked) => {
@@ -668,10 +678,11 @@ export function LocationSetup({
           }}
         />
 
+        {/* ---------------------------------------------------------- Submit */}
         <button
           onClick={handleSubmit}
           disabled={isLoading}
-          className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+          className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6 cursor-pointer"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
           {isLoading ? "Processing..." : "Continue to Verification"}
