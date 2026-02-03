@@ -101,7 +101,7 @@ function CommonTable<T extends Record<string, any>>({
   }>({ key: null, direction: "asc" });
   const [columnWidths, setColumnWidths] = useState<Record<number, number>>({});
   const [visibleColumns, setVisibleColumns] = useState<Record<number, boolean>>(
-    () => columns.reduce((acc, _, index) => ({ ...acc, [index]: true }), {})
+    () => columns.reduce((acc, _, index) => ({ ...acc, [index]: true }), {}),
   );
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [currentPerPage, setCurrentPerPage] = useState(perPage);
@@ -113,7 +113,7 @@ function CommonTable<T extends Record<string, any>>({
   } | null>(null);
   const [columnFilters, setColumnFilters] = useState<Record<string, any[]>>({});
   const [openFilterDropdown, setOpenFilterDropdown] = useState<number | null>(
-    null
+    null,
   );
   const [filterSearchTerms, setFilterSearchTerms] = useState<
     Record<string, string>
@@ -159,7 +159,7 @@ function CommonTable<T extends Record<string, any>>({
   const handleFilterChange = (
     columnKey: string,
     value: any,
-    checked: boolean
+    checked: boolean,
   ) => {
     setColumnFilters((prev) => {
       const currentFilters = prev[columnKey] || [];
@@ -186,7 +186,7 @@ function CommonTable<T extends Record<string, any>>({
   const toggleAllValues = (
     columnKey: string,
     distinctValues: any[],
-    selectAll: boolean
+    selectAll: boolean,
   ) => {
     if (selectAll) {
       setColumnFilters((prev) => ({
@@ -267,7 +267,7 @@ function CommonTable<T extends Record<string, any>>({
   const handleRowClick = (row: T, event: React.MouseEvent) => {
     if (
       (event.target as Element).closest(
-        'input[type="checkbox"], button, a, .filter-dropdown'
+        'input[type="checkbox"], button, a, .filter-dropdown',
       )
     ) {
       return;
@@ -278,7 +278,7 @@ function CommonTable<T extends Record<string, any>>({
   const handleRowSelect = (
     rowId: string,
     checked: boolean,
-    event: React.ChangeEvent
+    event: React.ChangeEvent,
   ) => {
     if (!selectableRows) return;
     event.stopPropagation();
@@ -370,7 +370,7 @@ function CommonTable<T extends Record<string, any>>({
       showPagination
         ? processedData.slice(startIndex, endIndex)
         : processedData,
-    [processedData, startIndex, endIndex, showPagination]
+    [processedData, startIndex, endIndex, showPagination],
   );
 
   useEffect(() => {
@@ -385,7 +385,7 @@ function CommonTable<T extends Record<string, any>>({
       ...processedData.map((row) =>
         visibleCols
           .map((col) => `"${getNestedValue(row, col.key) || ""}"`)
-          .join(",")
+          .join(","),
       ),
     ].join("\n");
 
@@ -399,7 +399,7 @@ function CommonTable<T extends Record<string, any>>({
   };
 
   const searchableColumns = columns.filter(
-    (col) => col.searchable !== false && col.key !== "actions"
+    (col) => col.searchable !== false && col.key !== "actions",
   );
 
   const visibleColumnsList = columns.filter((_, i) => visibleColumns[i]);
@@ -433,7 +433,7 @@ function CommonTable<T extends Record<string, any>>({
             }
           }}
           className={`ml-1 p-0 border-none bg-transparent text-xs ${
-            hasActiveFilter ? "text-blue-600" : "text-gray-400"
+            hasActiveFilter ? "text-blue-600" : "text-muted-foreground"
           } hover:text-blue-700 transition-colors`}
         >
           <Filter
@@ -443,11 +443,11 @@ function CommonTable<T extends Record<string, any>>({
 
         {isOpen && (
           <div
-            className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-80 overflow-y-auto"
+            className="absolute left-0 top-full mt-1 w-64 bg-card rounded-lg shadow-xl border border-border z-50 max-h-80 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-              <span className="text-xs font-bold text-gray-700 uppercase">
+            <div className="px-4 py-2 border-b border-border flex justify-between items-center">
+              <span className="text-xs font-bold text-foreground uppercase">
                 Filter {column.header}
               </span>
               {hasActiveFilter && (
@@ -471,17 +471,17 @@ function CommonTable<T extends Record<string, any>>({
                     [column.key]: e.target.value,
                   }))
                 }
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-border bg-input text-foreground rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
 
-            <div className="border-t border-gray-200" />
+            <div className="border-t border-border" />
 
             {filteredValues.length > 0 && (
               <>
                 <label
-                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center px-4 py-2 hover:bg-secondary cursor-pointer"
                   onClick={() =>
                     toggleAllValues(column.key, filteredValues, !allSelected)
                   }
@@ -492,11 +492,11 @@ function CommonTable<T extends Record<string, any>>({
                     onChange={() => {}}
                     className="mr-2 pointer-events-none"
                   />
-                  <span className="text-sm">
+                  <span className="text-sm text-foreground">
                     {allSelected ? "Deselect All" : "Select All"}
                   </span>
                 </label>
-                <div className="border-t border-gray-200" />
+                <div className="border-t border-border" />
               </>
             )}
 
@@ -510,7 +510,7 @@ function CommonTable<T extends Record<string, any>>({
               return (
                 <label
                   key={index}
-                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center px-4 py-2 hover:bg-secondary cursor-pointer"
                   onClick={() =>
                     handleFilterChange(column.key, value, !isSelected)
                   }
@@ -521,13 +521,15 @@ function CommonTable<T extends Record<string, any>>({
                     onChange={() => {}}
                     className="mr-2 pointer-events-none"
                   />
-                  <span className="text-sm">{displayValue}</span>
+                  <span className="text-sm text-foreground">
+                    {displayValue}
+                  </span>
                 </label>
               );
             })}
 
             {filteredValues.length === 0 && searchTerm && (
-              <div className="px-4 py-2 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm text-muted-foreground">
                 No values match "{searchTerm}"
               </div>
             )}
@@ -558,7 +560,7 @@ function CommonTable<T extends Record<string, any>>({
                   onClick={() =>
                     setShowSearchColumnDropdown(!showSearchColumnDropdown)
                   }
-                  className={`flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 ${
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border border-border bg-card text-foreground rounded hover:bg-secondary ${
                     isMobile ? "w-full justify-between" : ""
                   }`}
                 >
@@ -571,17 +573,17 @@ function CommonTable<T extends Record<string, any>>({
                 </button>
 
                 {showSearchColumnDropdown && (
-                  <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
+                  <div className="absolute left-0 top-full mt-1 w-48 bg-card rounded-lg shadow-lg border border-border z-50 max-h-60 overflow-y-auto">
                     <button
                       onClick={() => {
                         setSearchColumn("all");
                         setShowSearchColumnDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary"
                     >
                       All Columns
                     </button>
-                    <div className="border-t border-gray-200" />
+                    <div className="border-t border-border" />
                     {searchableColumns.map((col) => (
                       <button
                         key={col.key}
@@ -589,7 +591,7 @@ function CommonTable<T extends Record<string, any>>({
                           setSearchColumn(col.key);
                           setShowSearchColumnDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary"
                       >
                         {col.header}
                       </button>
@@ -600,20 +602,20 @@ function CommonTable<T extends Record<string, any>>({
 
               <div className="flex-1 flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder={searchPlaceholder}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-10 py-2 border border-border bg-input text-foreground rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm("")}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-secondary rounded"
                     >
-                      <X className="w-4 h-4 text-gray-400" />
+                      <X className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
@@ -627,18 +629,18 @@ function CommonTable<T extends Record<string, any>>({
             >
               {showPerPageSelector && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Show:</span>
+                  <span className="text-sm text-muted-foreground">Show:</span>
                   <div className="per-page-dropdown relative">
                     <button
                       onClick={() =>
                         setShowPerPageDropdown(!showPerPageDropdown)
                       }
-                      className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                      className="px-3 py-2 text-sm border border-border bg-card text-foreground rounded hover:bg-secondary"
                     >
                       {currentPerPage}
                     </button>
                     {showPerPageDropdown && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <div className="absolute left-0 top-full mt-1 bg-card rounded-lg shadow-lg border border-border z-50">
                         {[5, 10, 25, 50, 100].map((num) => (
                           <button
                             key={num}
@@ -646,7 +648,7 @@ function CommonTable<T extends Record<string, any>>({
                               setCurrentPerPage(num);
                               setShowPerPageDropdown(false);
                             }}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                            className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary"
                           >
                             {num}
                           </button>
@@ -663,20 +665,20 @@ function CommonTable<T extends Record<string, any>>({
                     onClick={() =>
                       setShowColumnToggleDropdown(!showColumnToggleDropdown)
                     }
-                    className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                    className="flex items-center gap-2 px-3 py-2 text-sm border border-border bg-card text-foreground rounded hover:bg-secondary"
                   >
                     <Columns className="w-4 h-4" />
                     <span>Columns</span>
                   </button>
                   {showColumnToggleDropdown && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-card rounded-lg shadow-lg border border-border z-50 max-h-60 overflow-y-auto">
                       {columns
                         .map((col, i) => ({ col, i }))
                         .filter(({ col }) => !col.hiddenFromToggle)
                         .map(({ col, i }) => (
                           <label
                             key={i}
-                            className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                            className="flex items-center px-4 py-2 hover:bg-secondary cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -690,7 +692,9 @@ function CommonTable<T extends Record<string, any>>({
                               }}
                               className="mr-2"
                             />
-                            <span className="text-sm">{col.header}</span>
+                            <span className="text-sm text-foreground">
+                              {col.header}
+                            </span>
                           </label>
                         ))}
                     </div>
@@ -701,7 +705,7 @@ function CommonTable<T extends Record<string, any>>({
               {exportable && (
                 <button
                   onClick={handleExport}
-                  className="flex items-center gap-2 px-3 py-2 text-sm border border-green-500 text-green-600 rounded hover:bg-green-50"
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-green-500 text-green-600 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
                 >
                   <Download className="w-4 h-4" />
                   {!isMobile && <span>Export</span>}
@@ -714,20 +718,20 @@ function CommonTable<T extends Record<string, any>>({
         {(selectedRows.size > 0 || activeFiltersCount > 0) && (
           <div className="mt-3 flex gap-2 flex-wrap">
             {selectedRows.size > 0 && (
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-sm rounded-full">
                 {selectedRows.size} row{selectedRows.size > 1 ? "s" : ""}{" "}
                 selected
               </span>
             )}
             {activeFiltersCount > 0 && (
               <>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-sm rounded-full">
                   {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""}{" "}
                   active
                 </span>
                 <button
                   onClick={() => setColumnFilters({})}
-                  className="px-3 py-1 text-sm border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50"
+                  className="px-3 py-1 text-sm border border-yellow-500 text-yellow-600 dark:text-yellow-400 rounded hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                 >
                   Clear All Filters
                 </button>
@@ -746,8 +750,8 @@ function CommonTable<T extends Record<string, any>>({
     return (
       <div
         key={rowId}
-        className={`mb-3 bg-white rounded-lg border ${
-          isSelected ? "border-blue-500" : "border-gray-200"
+        className={`mb-3 bg-card rounded-lg border ${
+          isSelected ? "border-blue-500" : "border-border"
         } p-4 shadow-sm`}
         onClick={(e) => handleRowClick(row, e)}
         style={{
@@ -766,7 +770,7 @@ function CommonTable<T extends Record<string, any>>({
                 onChange={(e) => handleRowSelect(rowId, e.target.checked, e)}
                 className="mr-2"
               />
-              <span className="text-sm">Select</span>
+              <span className="text-sm text-foreground">Select</span>
             </label>
           </div>
         )}
@@ -777,10 +781,10 @@ function CommonTable<T extends Record<string, any>>({
 
           return (
             <div key={colIndex} className="mb-2">
-              <strong className="text-gray-600 text-sm block">
+              <strong className="text-muted-foreground text-sm block">
                 {column.header}
               </strong>
-              <div className="text-gray-900">{value}</div>
+              <div className="text-foreground">{value}</div>
             </div>
           );
         })}
@@ -793,7 +797,7 @@ function CommonTable<T extends Record<string, any>>({
       return (
         <div className="text-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-          <p className="mt-3 text-gray-500">Loading data...</p>
+          <p className="mt-3 text-muted-foreground">Loading data...</p>
         </div>
       );
     }
@@ -801,11 +805,13 @@ function CommonTable<T extends Record<string, any>>({
     if (processedData.length === 0 && searchTerm) {
       return (
         <div className="text-center py-12">
-          <Search className="w-12 h-12 text-gray-400 mx-auto" />
-          <h5 className="mt-3 text-gray-500 font-medium">No results found</h5>
+          <Search className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h5 className="mt-3 text-muted-foreground font-medium">
+            No results found
+          </h5>
           <button
             onClick={() => setSearchTerm("")}
-            className="mt-3 px-4 py-2 border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
+            className="mt-3 px-4 py-2 border border-blue-500 text-blue-600 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
             Clear Search
           </button>
@@ -816,10 +822,12 @@ function CommonTable<T extends Record<string, any>>({
     if (data.length === 0) {
       return (
         <div className="text-center py-12">
-          <div className="text-gray-400 mx-auto flex justify-center">
+          <div className="text-muted-foreground mx-auto flex justify-center">
             {emptyIcon}
           </div>
-          <h5 className="mt-3 text-gray-500 font-medium">{emptyMessage}</h5>
+          <h5 className="mt-3 text-muted-foreground font-medium">
+            {emptyMessage}
+          </h5>
           {emptyAction}
         </div>
       );
@@ -854,7 +862,7 @@ function CommonTable<T extends Record<string, any>>({
           className={`w-full text-sm text-left ${className}`}
           style={{ tableLayout: "auto", minWidth: "100%" }}
         >
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-secondary border-b border-border">
             <tr>
               {selectableRows && (
                 <th className="px-4 py-3" style={{ width: "50px" }}>
@@ -863,7 +871,7 @@ function CommonTable<T extends Record<string, any>>({
                     checked={
                       currentData.length > 0 &&
                       currentData.every((row) =>
-                        selectedRows.has(getRowId(row))
+                        selectedRows.has(getRowId(row)),
                       )
                     }
                     onChange={(e) => handleSelectAll(e.target.checked)}
@@ -878,7 +886,7 @@ function CommonTable<T extends Record<string, any>>({
                   <th
                     key={originalIndex}
                     style={{ width, position: "relative" }}
-                    className={`px-4 py-3 font-medium text-gray-900 ${
+                    className={`px-4 py-3 font-medium text-foreground ${
                       column.headerClassName || ""
                     }`}
                     onClick={() =>
@@ -899,7 +907,7 @@ function CommonTable<T extends Record<string, any>>({
                               <ArrowDown className="w-4 h-4 text-blue-600" />
                             )
                           ) : (
-                            <ArrowUpDown className="w-4 h-4 text-gray-400 opacity-50" />
+                            <ArrowUpDown className="w-4 h-4 text-muted-foreground opacity-50" />
                           )}
                         </span>
                       )}
@@ -915,7 +923,7 @@ function CommonTable<T extends Record<string, any>>({
                           width: "4px",
                           cursor: "col-resize",
                         }}
-                        className="border-r-2 border-gray-300 hover:border-blue-500"
+                        className="border-r-2 border-border hover:border-blue-500"
                         onMouseDown={(e) => handleMouseDown(e, originalIndex)}
                       />
                     )}
@@ -924,7 +932,7 @@ function CommonTable<T extends Record<string, any>>({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {currentData.map((row, rowIndex) => {
               const rowId = getRowId(row);
               const isSelected = selectedRows.has(rowId);
@@ -933,9 +941,11 @@ function CommonTable<T extends Record<string, any>>({
                 <tr
                   key={rowId}
                   className={`${
-                    striped && rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  } ${hover ? "hover:bg-gray-100" : ""} ${
-                    isSelected ? "bg-blue-50" : ""
+                    striped && rowIndex % 2 === 0
+                      ? "bg-secondary/50"
+                      : "bg-card"
+                  } ${hover ? "hover:bg-secondary" : ""} ${
+                    isSelected ? "bg-blue-50 dark:bg-blue-900/20" : ""
                   } transition-colors`}
                   style={{
                     cursor:
@@ -963,7 +973,7 @@ function CommonTable<T extends Record<string, any>>({
                     return (
                       <td
                         key={colIndex}
-                        className={`px-4 py-3 ${column.cellClassName || ""}`}
+                        className={`px-4 py-3 text-foreground ${column.cellClassName || ""}`}
                         style={{
                           width,
                           maxWidth: column.maxWidth || "200px",
@@ -1013,11 +1023,11 @@ function CommonTable<T extends Record<string, any>>({
             className={`px-3 py-1 text-sm rounded ${
               i === currentPage
                 ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                : "bg-card text-foreground hover:bg-secondary border border-border"
             }`}
           >
             {i}
-          </button>
+          </button>,
         );
       }
     } else {
@@ -1028,18 +1038,18 @@ function CommonTable<T extends Record<string, any>>({
           className={`px-3 py-1 text-sm rounded ${
             1 === currentPage
               ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+              : "bg-card text-foreground hover:bg-secondary border border-border"
           }`}
         >
           1
-        </button>
+        </button>,
       );
 
       if (currentPage > 3)
         items.push(
           <span key="start-ellipsis" className="px-2">
-            <MoreHorizontal className="w-4 h-4 text-gray-400" />
-          </span>
+            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+          </span>,
         );
 
       const start = Math.max(2, currentPage - 1);
@@ -1053,19 +1063,19 @@ function CommonTable<T extends Record<string, any>>({
             className={`px-3 py-1 text-sm rounded ${
               i === currentPage
                 ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                : "bg-card text-foreground hover:bg-secondary border border-border"
             }`}
           >
             {i}
-          </button>
+          </button>,
         );
       }
 
       if (currentPage < totalPages - 2)
         items.push(
           <span key="end-ellipsis" className="px-2">
-            <MoreHorizontal className="w-4 h-4 text-gray-400" />
-          </span>
+            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+          </span>,
         );
 
       if (totalPages > 1) {
@@ -1076,22 +1086,22 @@ function CommonTable<T extends Record<string, any>>({
             className={`px-3 py-1 text-sm rounded ${
               totalPages === currentPage
                 ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                : "bg-card text-foreground hover:bg-secondary border border-border"
             }`}
           >
             {totalPages}
-          </button>
+          </button>,
         );
       }
     }
 
     return (
       <div
-        className={`bg-white border-t border-gray-200 px-4 py-3 flex ${
+        className={`bg-card border-t border-border px-4 py-3 flex ${
           isMobile ? "flex-col gap-3" : "justify-between items-center"
         }`}
       >
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           Showing {startIndex + 1} to {Math.min(endIndex, processedData.length)}{" "}
           of {processedData.length} entries
           {(searchTerm || Object.keys(columnFilters).length > 0) && (
@@ -1103,14 +1113,14 @@ function CommonTable<T extends Record<string, any>>({
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(1)}
-            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1 rounded border border-border bg-card text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronsLeft className="w-4 h-4" />
           </button>
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1 rounded border border-border bg-card text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -1118,14 +1128,14 @@ function CommonTable<T extends Record<string, any>>({
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
-            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1 rounded border border-border bg-card text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(totalPages)}
-            className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1 rounded border border-border bg-card text-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronsRight className="w-4 h-4" />
           </button>
@@ -1135,9 +1145,9 @@ function CommonTable<T extends Record<string, any>>({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-card rounded-lg shadow-sm border border-border">
       {cardHeader && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="bg-card border-b border-border px-4 py-3">
           {cardHeader}
         </div>
       )}

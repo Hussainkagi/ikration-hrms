@@ -26,6 +26,7 @@ import {
   Loader2,
   FileText,
   CalendarDays,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import CommonTable from "@/components/ui/commonTable";
@@ -34,6 +35,7 @@ import HeadcountReport from "@/components/reportingComponents/HeadCountReport";
 import PunctualityReport from "@/components/reportingComponents/PunctualityRatio";
 import WorkingHoursReport from "@/components/reportingComponents/WorkingHoursReport";
 import CheckInOutReport from "@/components/reportingComponents/CheckinoutRatio";
+import { useTheme } from "@/contexts/theme-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
@@ -85,6 +87,26 @@ interface AttendanceRecord {
   updatedAt: string;
 }
 
+interface OrganizationProfile {
+  id: string;
+  orgId: string;
+  companyName: string;
+  officeAddress: string;
+  latitude: number;
+  longitude: number;
+  radius: number;
+  country: string;
+  timezone: string;
+  workStartTime: string;
+  workEndTime: string;
+  weeklyOffDays: string[];
+  agreementAccepted: boolean;
+  agreementAcceptedAt: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 type ReportType =
   | "casual"
   | "detailed"
@@ -94,11 +116,15 @@ type ReportType =
   | "checkinout";
 
 export default function EmployeeTracking() {
+  const { colorTheme } = useTheme();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [reportType, setReportType] = useState<ReportType>("casual");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [organizationTimezone, setOrganizationTimezone] = useState<string>("");
+  const [organizationProfile, setOrganizationProfile] =
+    useState<OrganizationProfile | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
@@ -109,9 +135,12 @@ export default function EmployeeTracking() {
   const [checkInOutData, setCheckInOutData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingEmployees, setFetchingEmployees] = useState(true);
+  const [fetchingOrgProfile, setFetchingOrgProfile] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Fetch organization profile on component mount
   useEffect(() => {
+    fetchOrganizationProfile();
     fetchEmployees();
   }, []);
 
@@ -125,6 +154,42 @@ export default function EmployeeTracking() {
 
     return null;
   }
+
+  const fetchOrganizationProfile = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`${BASE_URL}/organization/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch organization profile");
+      }
+
+      const data: OrganizationProfile = await response.json();
+      setOrganizationProfile(data);
+      setOrganizationTimezone(data.timezone);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch organization profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setFetchingOrgProfile(false);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -178,6 +243,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("userId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance${
@@ -224,6 +290,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/detailed${
@@ -270,6 +337,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/headcount${
@@ -316,6 +384,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/punctuality-ratio${
@@ -362,6 +431,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/working-hours${
@@ -408,6 +478,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/check-in-out-ratio${
@@ -486,19 +557,24 @@ export default function EmployeeTracking() {
       { bg: string; text: string; icon: any }
     > = {
       "checked-in": {
-        bg: "bg-blue-100",
-        text: "text-blue-700",
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-400",
         icon: CheckCircle,
       },
       "checked-out": {
-        bg: "bg-green-100",
-        text: "text-green-700",
+        bg: "bg-green-100 dark:bg-green-900/30",
+        text: "text-green-700 dark:text-green-400",
         icon: CheckCircle,
       },
       absent: {
-        bg: "bg-red-100",
-        text: "text-red-700",
+        bg: "bg-red-100 dark:bg-red-900/30",
+        text: "text-red-700 dark:text-red-400",
         icon: XCircle,
+      },
+      "comp-off": {
+        bg: "bg-purple-100 dark:bg-purple-900/30",
+        text: "text-purple-700 dark:text-purple-400",
+        icon: Calendar,
       },
     };
 
@@ -523,15 +599,21 @@ export default function EmployeeTracking() {
       sortable: true,
       render: (row: AttendanceRecord) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-semibold">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
+            style={{
+              backgroundColor: `${colorTheme.colors.primary}20`,
+              color: colorTheme.colors.primary,
+            }}
+          >
             {row.userId.firstName[0]}
             {row.userId.lastName[0]}
           </div>
           <div>
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-foreground">
               {row.userId.firstName} {row.userId.lastName}
             </p>
-            <p className="text-sm text-gray-500">{row.userId.email}</p>
+            <p className="text-sm text-muted-foreground">{row.userId.email}</p>
           </div>
         </div>
       ),
@@ -545,7 +627,7 @@ export default function EmployeeTracking() {
       sortable: true,
       render: (row: AttendanceRecord) => (
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           <span>{formatDate(row.date)}</span>
         </div>
       ),
@@ -559,11 +641,11 @@ export default function EmployeeTracking() {
           {row.checkInTime ? (
             <>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 <span className="font-medium">{row.checkInTime}</span>
               </div>
               {row.checkInLocation && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
                   <span>
                     {row.checkInLocation.latitude.toFixed(4)},{" "}
@@ -574,7 +656,8 @@ export default function EmployeeTracking() {
               {row.checkInSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkInSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="flex items-center gap-1 text-xs hover:underline"
+                  style={{ color: colorTheme.colors.primary }}
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -582,7 +665,7 @@ export default function EmployeeTracking() {
               )}
             </>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-muted-foreground">-</span>
           )}
         </div>
       ),
@@ -596,11 +679,11 @@ export default function EmployeeTracking() {
           {row.checkOutTime ? (
             <>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 <span className="font-medium">{row.checkOutTime}</span>
               </div>
               {row.checkOutLocation && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
                   <span>
                     {row.checkOutLocation.latitude.toFixed(4)},{" "}
@@ -611,7 +694,8 @@ export default function EmployeeTracking() {
               {row.checkOutSelfie && (
                 <button
                   onClick={() => setSelectedImage(`${row.checkOutSelfie}`)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="flex items-center gap-1 text-xs hover:underline"
+                  style={{ color: colorTheme.colors.primary }}
                 >
                   <ImageIcon className="w-3 h-3" />
                   View Selfie
@@ -619,7 +703,7 @@ export default function EmployeeTracking() {
               )}
             </>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-muted-foreground">-</span>
           )}
         </div>
       ),
@@ -633,26 +717,33 @@ export default function EmployeeTracking() {
     },
   ];
 
+  const isDataLoading = fetchingEmployees || fetchingOrgProfile;
+
   return (
     <>
-      <Card>
+      <Card className="bg-card border-border">
         <CardContent className="space-y-4">
-          {fetchingEmployees ? (
+          {isDataLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
-              <span className="ml-2 text-gray-600">Loading employees...</span>
+              <Loader2
+                className="w-6 h-6 animate-spin"
+                style={{ color: colorTheme.colors.primary }}
+              />
+              <span className="ml-2 text-muted-foreground">
+                Loading data...
+              </span>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Select Employee
                   </label>
                   <select
                     value={selectedEmployee}
                     onChange={(e) => setSelectedEmployee(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   >
                     <option value="">All Employees</option>
                     {employees.map((emp) => (
@@ -664,7 +755,7 @@ export default function EmployeeTracking() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Report Type
                   </label>
                   <select
@@ -678,7 +769,7 @@ export default function EmployeeTracking() {
                       setWorkingHoursData(null);
                       setCheckInOutData(null);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   >
                     <option value="casual">Casual Report</option>
                     <option value="detailed">Attendance Detailed Report</option>
@@ -689,28 +780,50 @@ export default function EmployeeTracking() {
                   </select>
                 </div>
 
+                {/* <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Globe className="w-4 h-4 inline mr-1" />
+                    Timezone
+                  </label>
+                  <div className="w-full px-3 py-2 border border-border bg-muted text-foreground rounded-lg cursor-not-allowed opacity-75">
+                    {organizationTimezone || "Loading..."}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Organization timezone (read-only)
+                  </p>
+                </div> */}
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Globe className="w-4 h-4 inline mr-1" />
+                    Timezone
+                  </label>
+                  <div className="w-full px-3 py-2   text-foreground rounded-lg cursor-not-allowed opacity-75">
+                    {organizationTimezone || "Loading..."}
+                  </div>
                 </div>
               </div>
 
@@ -718,7 +831,7 @@ export default function EmployeeTracking() {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="flex-1 md:flex-none px-6 py-4 sm:py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 md:flex-none px-6 py-4 sm:py-2 btn-primary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -740,7 +853,7 @@ export default function EmployeeTracking() {
                 <button
                   onClick={handleReset}
                   disabled={loading}
-                  className="px-6 py-4 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-4 sm:py-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Reset
                 </button>
@@ -750,7 +863,7 @@ export default function EmployeeTracking() {
         </CardContent>
       </Card>
 
-      {!fetchingEmployees && reportType === "casual" && (
+      {!isDataLoading && reportType === "casual" && (
         <div className="mt-6">
           <CommonTable
             data={attendanceRecords}
@@ -773,37 +886,31 @@ export default function EmployeeTracking() {
         </div>
       )}
 
-      {!fetchingEmployees &&
-        reportType === "detailed" &&
-        detailedReportData && (
-          <div className="mt-6">
-            <AttendanceDetailedReport data={detailedReportData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "detailed" && detailedReportData && (
+        <div className="mt-6">
+          <AttendanceDetailedReport data={detailedReportData} />
+        </div>
+      )}
 
-      {!fetchingEmployees && reportType === "headcount" && headcountData && (
+      {!isDataLoading && reportType === "headcount" && headcountData && (
         <div className="mt-6">
           <HeadcountReport data={headcountData} />
         </div>
       )}
 
-      {!fetchingEmployees &&
-        reportType === "punctuality" &&
-        punctualityData && (
-          <div className="mt-6">
-            <PunctualityReport data={punctualityData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "punctuality" && punctualityData && (
+        <div className="mt-6">
+          <PunctualityReport data={punctualityData} />
+        </div>
+      )}
 
-      {!fetchingEmployees &&
-        reportType === "workinghours" &&
-        workingHoursData && (
-          <div className="mt-6">
-            <WorkingHoursReport data={workingHoursData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "workinghours" && workingHoursData && (
+        <div className="mt-6">
+          <WorkingHoursReport data={workingHoursData} />
+        </div>
+      )}
 
-      {!fetchingEmployees && reportType === "checkinout" && checkInOutData && (
+      {!isDataLoading && reportType === "checkinout" && checkInOutData && (
         <div className="mt-6">
           <CheckInOutReport data={checkInOutData} />
         </div>
@@ -815,22 +922,30 @@ export default function EmployeeTracking() {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
+            className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900">Selfie</h3>
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: `${colorTheme.colors.primary}30` }}
+            >
+              <h3
+                className="text-lg font-bold"
+                style={{ color: colorTheme.colors.primary }}
+              >
+                Selfie
+              </h3>
               <button
                 onClick={() => setSelectedImage(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-4">
               <img
                 src={`https://lh3.googleusercontent.com/d/${extractGoogleDriveFileId(
-                  selectedImage
+                  selectedImage,
                 )}=w1000?authuser=1/view`}
                 alt="Employee Selfie"
                 className="w-full h-auto rounded-lg"

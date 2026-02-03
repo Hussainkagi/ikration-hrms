@@ -152,7 +152,7 @@ export default function TrackingPage() {
         },
         (error) => {
           reject(error);
-        }
+        },
       );
     });
   };
@@ -280,7 +280,7 @@ export default function TrackingPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <p className="text-gray-500">Loading user data...</p>
+          <p className="text-muted-foreground">Loading user data...</p>
         </div>
       </DashboardLayout>
     );
@@ -290,32 +290,34 @@ export default function TrackingPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Attendance Tracking
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Record your check-in and check-out times
           </p>
         </div>
 
         {/* User Info & Check-in/out Form */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Time Tracking</CardTitle>
-            <CardDescription>Record your attendance</CardDescription>
+            <CardTitle className="text-foreground">Time Tracking</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Record your attendance
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Current User Display */}
-            <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-900/30 rounded-xl border border-orange-200 dark:border-orange-700">
               <div className="w-16 h-16 rounded-full bg-orange-600 flex items-center justify-center text-white text-xl font-bold">
                 {getUserInitials()}
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-lg">
+                <p className="font-semibold text-foreground text-lg">
                   {getUserFullName()}
                 </p>
-                <p className="text-sm text-gray-600">{user.email}</p>
-                <p className="text-xs text-gray-500 mt-1 capitalize">
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <p className="text-xs text-muted-foreground mt-1 capitalize">
                   {user.role}
                 </p>
               </div>
@@ -347,26 +349,26 @@ export default function TrackingPage() {
 
       {showCameraModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">
+                <h3 className="text-2xl font-bold text-foreground">
                   {showCameraModal === "check-in" ? "Check In" : "Check Out"}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {!cameraActive
                     ? "Take a selfie for verification or skip to continue"
                     : capturedImage
-                    ? "Review your photo and submit to confirm"
-                    : "Position your face in the frame and capture your selfie"}
+                      ? "Review your photo and submit to confirm"
+                      : "Position your face in the frame and capture your selfie"}
                 </p>
               </div>
               <button
                 onClick={closeCameraModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
@@ -374,14 +376,14 @@ export default function TrackingPage() {
             <div className="p-6">
               {!cameraActive ? (
                 <div className="space-y-6">
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-8 text-center">
+                  <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-8 text-center">
                     <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Camera className="w-10 h-10 text-white" />
                     </div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h4 className="text-lg font-semibold text-foreground mb-2">
                       Selfie Verification
                     </h4>
-                    <p className="text-sm text-gray-600 mb-6">
+                    <p className="text-sm text-muted-foreground mb-6">
                       Take a selfie to verify your attendance or skip to
                       continue without a photo
                     </p>
@@ -402,7 +404,7 @@ export default function TrackingPage() {
                       >
                         {loading ? (
                           <>
-                            <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             Processing...
                           </>
                         ) : (
@@ -419,11 +421,13 @@ export default function TrackingPage() {
               ) : (
                 <div className="space-y-4">
                   {error ? (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                      <p className="text-sm text-red-600">{error}</p>
+                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 text-center">
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {error}
+                      </p>
                       <button
                         onClick={startCamera}
-                        className="mt-3 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                        className="mt-3 px-4 py-2 bg-background border border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50 transition-colors text-sm font-medium"
                       >
                         Try Again
                       </button>
@@ -463,7 +467,7 @@ export default function TrackingPage() {
                       <>
                         <button
                           onClick={retakePhoto}
-                          className="flex-1 h-12 bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 h-12 bg-background border-2 border-border hover:bg-secondary text-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                           <RotateCcw className="w-4 h-4" />
                           Retake
@@ -500,7 +504,7 @@ export default function TrackingPage() {
                       <>
                         <button
                           onClick={goBackToInitialView}
-                          className="flex-1 h-12 bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 h-12 bg-background border-2 border-border hover:bg-secondary text-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" />
                           Cancel

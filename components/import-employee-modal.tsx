@@ -227,23 +227,23 @@ export default function ImportEmployeeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-foreground">
               Import Employees
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               Upload an Excel file to import multiple employees
             </p>
           </div>
           <button
             onClick={handleClose}
             disabled={isImporting}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -254,13 +254,13 @@ export default function ImportEmployeeModal({
             <div className="mb-6 space-y-3">
               {/* Success Summary */}
               {importResult.success > 0 && (
-                <div className="p-4 rounded-lg flex items-start gap-3 bg-green-50 border border-green-200">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="p-4 rounded-lg flex items-start gap-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="font-medium text-green-900">
+                    <p className="font-medium text-green-900 dark:text-green-400">
                       Successfully Imported
                     </p>
-                    <p className="text-sm mt-1 text-green-700">
+                    <p className="text-sm mt-1 text-green-700 dark:text-green-400">
                       {importResult.success} employee
                       {importResult.success !== 1 ? "s" : ""} added
                       successfully.
@@ -271,14 +271,14 @@ export default function ImportEmployeeModal({
 
               {/* Error Summary */}
               {importResult.failed > 0 && (
-                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700">
                   <div className="flex items-start gap-3 mb-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="font-medium text-red-900">
+                      <p className="font-medium text-red-900 dark:text-red-400">
                         Failed to Import
                       </p>
-                      <p className="text-sm mt-1 text-red-700">
+                      <p className="text-sm mt-1 text-red-700 dark:text-red-400">
                         {importResult.failed} employee
                         {importResult.failed !== 1 ? "s" : ""} could not be
                         imported due to errors.
@@ -290,29 +290,32 @@ export default function ImportEmployeeModal({
                   {importResult.errors.length > 0 && (
                     <div className="mt-3 max-h-48 overflow-y-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-red-100 sticky top-0">
+                        <thead className="bg-red-100 dark:bg-red-900/50 sticky top-0">
                           <tr>
-                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                            <th className="text-left py-2 px-3 font-semibold text-red-900 dark:text-red-400">
                               Row
                             </th>
-                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                            <th className="text-left py-2 px-3 font-semibold text-red-900 dark:text-red-400">
                               Email
                             </th>
-                            <th className="text-left py-2 px-3 font-semibold text-red-900">
+                            <th className="text-left py-2 px-3 font-semibold text-red-900 dark:text-red-400">
                               Error
                             </th>
                           </tr>
                         </thead>
                         <tbody>
                           {importResult.errors.map((error, idx) => (
-                            <tr key={idx} className="border-t border-red-200">
-                              <td className="py-2 px-3 text-red-900">
+                            <tr
+                              key={idx}
+                              className="border-t border-red-200 dark:border-red-800"
+                            >
+                              <td className="py-2 px-3 text-red-900 dark:text-red-400">
                                 {error.row}
                               </td>
-                              <td className="py-2 px-3 text-red-700">
+                              <td className="py-2 px-3 text-red-700 dark:text-red-400">
                                 {error.email}
                               </td>
-                              <td className="py-2 px-3 text-red-700">
+                              <td className="py-2 px-3 text-red-700 dark:text-red-400">
                                 {error.error}
                               </td>
                             </tr>
@@ -329,7 +332,7 @@ export default function ImportEmployeeModal({
                 <div className="text-center py-2">
                   <button
                     onClick={handleRemoveFile}
-                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                    className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium"
                   >
                     Upload a Different File
                   </button>
@@ -346,12 +349,12 @@ export default function ImportEmployeeModal({
                 <button
                   onClick={downloadTemplate}
                   disabled={isImporting}
-                  className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="w-4 h-4" />
                   Download Template
                 </button>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Download a sample Excel template with the required format
                 </p>
               </div>
@@ -364,7 +367,7 @@ export default function ImportEmployeeModal({
                     isImporting
                       ? "cursor-not-allowed opacity-50"
                       : "cursor-pointer"
-                  } border-gray-300 bg-gray-50 hover:border-orange-600`}
+                  } border-border bg-secondary hover:border-orange-600 dark:hover:border-orange-400`}
                 >
                   <input
                     ref={fileInputRef}
@@ -377,12 +380,12 @@ export default function ImportEmployeeModal({
                   <div className="flex flex-col items-center gap-3">
                     {file ? (
                       <>
-                        <FileSpreadsheet className="w-12 h-12 text-orange-600" />
+                        <FileSpreadsheet className="w-12 h-12 text-orange-600 dark:text-orange-400" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             {file.name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {isImporting
                               ? "Importing..."
                               : "Click to change file"}
@@ -391,12 +394,12 @@ export default function ImportEmployeeModal({
                       </>
                     ) : (
                       <>
-                        <Upload className="w-12 h-12 text-gray-400" />
+                        <Upload className="w-12 h-12 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             Click to upload Excel file
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Supports .xlsx, .xls, and .csv files
                           </p>
                         </div>
@@ -409,7 +412,7 @@ export default function ImportEmployeeModal({
                 {file && !isImporting && (
                   <button
                     onClick={handleRemoveFile}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                   >
                     <X className="w-4 h-4" />
                     Remove File
@@ -419,13 +422,13 @@ export default function ImportEmployeeModal({
 
               {/* Importing Status */}
               {isImporting && (
-                <div className="mt-4 p-4 rounded-lg flex items-start gap-3 bg-blue-50 border border-blue-200">
-                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+                <div className="mt-4 p-4 rounded-lg flex items-start gap-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
+                  <Loader2 className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-blue-900">
+                    <p className="font-medium text-blue-900 dark:text-blue-400">
                       Importing Employees...
                     </p>
-                    <p className="text-sm mt-1 text-blue-700">
+                    <p className="text-sm mt-1 text-blue-700 dark:text-blue-400">
                       Please wait while we add {previewData.length} employee
                       {previewData.length !== 1 ? "s" : ""} to the system. Do
                       not close this window.
@@ -437,74 +440,74 @@ export default function ImportEmployeeModal({
               {/* Preview Data */}
               {previewData.length > 0 && !isImporting && (
                 <div className="mt-6">
-                  <h3 className="font-semibold text-gray-900 mb-3">
+                  <h3 className="font-semibold text-foreground mb-3">
                     Preview ({previewData.length} employee
                     {previewData.length !== 1 ? "s" : ""})
                   </h3>
-                  <div className="border border-gray-200 rounded-lg overflow-auto max-h-60">
+                  <div className="border border-border rounded-lg overflow-auto max-h-60">
                     <table className="w-full min-w-max">
-                      <thead className="bg-gray-50 sticky top-0">
+                      <thead className="bg-secondary sticky top-0">
                         <tr>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             First Name
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Last Name
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Email
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Mobile
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Role
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Status
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                             Remote
                           </th>
                         </tr>
                       </thead>
                       <tbody>
                         {previewData.slice(0, 10).map((emp, idx) => (
-                          <tr key={idx} className="border-t border-gray-100">
-                            <td className="py-2 px-4 text-sm text-gray-900 whitespace-nowrap">
+                          <tr key={idx} className="border-t border-border">
+                            <td className="py-2 px-4 text-sm text-foreground whitespace-nowrap">
                               {emp.firstName}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-900 whitespace-nowrap">
+                            <td className="py-2 px-4 text-sm text-foreground whitespace-nowrap">
                               {emp.lastName}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                            <td className="py-2 px-4 text-sm text-muted-foreground whitespace-nowrap">
                               {emp.email}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                            <td className="py-2 px-4 text-sm text-muted-foreground whitespace-nowrap">
                               {emp.mobileNumber || "-"}
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
-                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+                            <td className="py-2 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs rounded-full capitalize">
                                 {emp.role}
                               </span>
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                            <td className="py-2 px-4 text-sm text-muted-foreground whitespace-nowrap">
                               <span
                                 className={`px-2 py-1 text-xs rounded-full capitalize ${
                                   emp.status === "active"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400"
                                 }`}
                               >
                                 {emp.status}
                               </span>
                             </td>
-                            <td className="py-2 px-4 text-sm text-gray-600 whitespace-nowrap">
+                            <td className="py-2 px-4 text-sm text-muted-foreground whitespace-nowrap">
                               <span
                                 className={`px-2 py-1 text-xs rounded-full ${
                                   emp.remote
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-orange-100 text-orange-800"
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                                    : "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400"
                                 }`}
                               >
                                 {emp.remote ? "Yes" : "No"}
@@ -515,7 +518,7 @@ export default function ImportEmployeeModal({
                       </tbody>
                     </table>
                     {previewData.length > 10 && (
-                      <div className="text-center py-2 text-sm text-gray-500 bg-gray-50 sticky bottom-0">
+                      <div className="text-center py-2 text-sm text-muted-foreground bg-secondary sticky bottom-0">
                         ... and {previewData.length - 10} more
                       </div>
                     )}
@@ -524,11 +527,11 @@ export default function ImportEmployeeModal({
               )}
 
               {/* Instructions */}
-              <div className="mt-6 p-4 bg-orange-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
+              <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                <h4 className="font-medium text-foreground mb-2">
                   File Requirements:
                 </h4>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                   <li>
                     Required columns: <strong>firstName</strong>,{" "}
                     <strong>lastName</strong>, and <strong>email</strong>
@@ -551,11 +554,11 @@ export default function ImportEmployeeModal({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-gray-200">
+        <div className="flex gap-3 p-6 border-t border-border">
           <button
             onClick={handleClose}
             disabled={isImporting}
-            className="flex-1 h-11 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-11 border border-border bg-background hover:bg-secondary text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {importResult ? "Close" : "Cancel"}
           </button>
@@ -569,10 +572,10 @@ export default function ImportEmployeeModal({
               {isImporting
                 ? "Importing..."
                 : isProcessing
-                ? "Processing..."
-                : `Import ${previewData.length} Employee${
-                    previewData.length !== 1 ? "s" : ""
-                  }`}
+                  ? "Processing..."
+                  : `Import ${previewData.length} Employee${
+                      previewData.length !== 1 ? "s" : ""
+                    }`}
             </button>
           )}
         </div>
