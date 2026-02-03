@@ -80,7 +80,7 @@ export default function RegisterPage() {
     longitude: 0,
     radius: 100,
     officeAddress: "",
-    country: "", // ✅ Added country field
+    country: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -131,18 +131,15 @@ export default function RegisterPage() {
       const result = await API.checkEmail(formData.email);
 
       if (result.exists && result.isVerified) {
-        // Email exists and is verified - show error
         setError(
           "This email is already registered. Please use a different email or sign in.",
         );
       } else if (result.exists && !result.isVerified) {
-        // Email exists but not verified - send OTP and go to verification
         await API.resendOTP(formData.email);
         setTimeout(() => {
-          setCurrentStep(4); // Go directly to OTP verification
+          setCurrentStep(4);
         }, 1000);
       } else {
-        // Email doesn't exist - proceed to company details
         setTimeout(() => {
           setCurrentStep(2);
         }, 1000);
@@ -172,7 +169,6 @@ export default function RegisterPage() {
       return false;
     }
 
-    // Check for uppercase, lowercase, and number
     const hasUpperCase = /[A-Z]/.test(formData.password);
     const hasLowerCase = /[a-z]/.test(formData.password);
     const hasNumber = /[0-9]/.test(formData.password);
@@ -213,16 +209,15 @@ export default function RegisterPage() {
       latitude: parseFloat(location.latitude),
       radius: parseInt(location.radius),
       officeAddress: location.address,
-      country: location.country, // ✅ Include country from location data
+      country: location.country,
       agreementAccepted: true,
     };
 
-    console.log("📤 Sending registration data:", registrationData); // Debug log
+    console.log("📤 Sending registration data:", registrationData);
 
     try {
       const result = await API.register(registrationData);
 
-      // Check if the response indicates an error
       if (result.statusCode === 400 || result.error) {
         const errorMessage = result.message
           ? Array.isArray(result.message)
@@ -230,26 +225,23 @@ export default function RegisterPage() {
             : result.message
           : "Registration failed. Please try again.";
         setError(errorMessage);
-        // Go back to step 2 so user can fix the password
         setCurrentStep(2);
         return;
       }
 
-      // Store location data for later use (including country)
       setFormData({
         ...formData,
         latitude: parseFloat(location.latitude),
         longitude: parseFloat(location.longitude),
         radius: parseInt(location.radius),
         officeAddress: location.address,
-        country: location.country, // ✅ Store country in formData
+        country: location.country,
       });
-      setCurrentStep(4); // Move to OTP verification
+      setCurrentStep(4);
     } catch (err: any) {
       const errorMessage =
         err.message || "Registration failed. Please try again.";
       setError(errorMessage);
-      // Go back to step 2 so user can fix the issue
       setCurrentStep(2);
     } finally {
       setIsLoading(false);
@@ -264,15 +256,13 @@ export default function RegisterPage() {
     try {
       const result = await API.verifyOTP(formData.email, otp);
 
-      // Check if the response indicates an error
       if (result.statusCode === 400 || result.error) {
         const errorMessage =
           result.message || "Invalid verification code. Please try again.";
         setError(errorMessage);
-        return; // Don't proceed to success screen
+        return;
       }
 
-      // Only move to success screen if verification was successful
       setCurrentStep(5);
     } catch (err: any) {
       const errorMessage =
@@ -302,9 +292,9 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Registration Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col bg-background">
         {/* Logo */}
-        <div className="p-6 lg:p-8">
+        <div className="p-4 lg:p-8">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
               <img src="./tlogo.png" alt="" />
@@ -324,11 +314,11 @@ export default function RegisterPage() {
         </div>
 
         {/* Form Container */}
-        <div className="flex-1 flex items-start lg:items-center justify-center px-6 lg:px-16 py-8">
+        <div className="flex-1 flex items-start lg:items-center justify-center px-6 lg:px-16 pt-4 pb-8 lg:py-0 overflow-y-auto">
           <div className="w-full max-w-md">
             {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
                 {currentStep === 1 && "Register Your Organization"}
                 {currentStep === 2 && "Company Details"}
                 {currentStep === 3 && "Setup Office Location"}
@@ -336,7 +326,7 @@ export default function RegisterPage() {
                 {currentStep === 5 && "Registration Complete"}
               </h1>
               {currentStep !== 5 && (
-                <p className="text-gray-600">Step {currentStep} of 4</p>
+                <p className="text-muted-foreground">Step {currentStep} of 4</p>
               )}
             </div>
 
@@ -348,7 +338,9 @@ export default function RegisterPage() {
                     <div
                       key={step}
                       className={`flex-1 h-2 rounded-full transition-all ${
-                        currentStep >= step ? "bg-orange-600" : "bg-gray-200"
+                        currentStep >= step
+                          ? "bg-orange-600"
+                          : "bg-gray-200 dark:bg-gray-700"
                       }`}
                     ></div>
                   ))}
@@ -358,16 +350,18 @@ export default function RegisterPage() {
 
             {/* Error Message */}
             {error && (currentStep === 1 || currentStep === 2) && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mb-4 lg:mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
 
             {/* Step 1 - Email */}
             {currentStep === 1 && (
-              <div className="space-y-4">
+              <div className="space-y-4 lg:space-y-5">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-foreground">
                     Company Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -376,7 +370,8 @@ export default function RegisterPage() {
                     placeholder="company@example.com"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
+                    required
                     disabled={isLoading}
                   />
                 </div>
@@ -384,20 +379,20 @@ export default function RegisterPage() {
                 <button
                   onClick={handleEmailSubmit}
                   disabled={isLoading}
-                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6 cursor-pointer"
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isLoading ? "Checking..." : "Continue"}
                 </button>
 
                 <div className="text-center pt-6">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Already have an account?{" "}
                   </span>
                   <button
                     type="button"
                     onClick={() => router.push("/login")}
-                    className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
+                    className="text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
                   >
                     Sign in
                   </button>
@@ -407,10 +402,10 @@ export default function RegisterPage() {
 
             {/* Step 2 - Company Details */}
             {currentStep === 2 && (
-              <div className="space-y-4">
+              <div className="space-y-4 lg:space-y-5">
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-4 transition-colors"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium mb-4 transition-colors"
                   disabled={isLoading}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -418,7 +413,7 @@ export default function RegisterPage() {
                 </button>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-foreground">
                     Company Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -427,13 +422,13 @@ export default function RegisterPage() {
                     placeholder="Acme Corporation"
                     value={formData.companyName}
                     onChange={handleInputChange}
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-foreground">
                     Your Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -442,16 +437,15 @@ export default function RegisterPage() {
                     placeholder="John Doe"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-foreground">
                     Password <span className="text-red-500">*</span>
                   </label>
-
                   <div className="relative">
                     <input
                       name="password"
@@ -459,32 +453,34 @@ export default function RegisterPage() {
                       placeholder="At least 8 characters"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 pr-12 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                       disabled={isLoading}
                     />
-
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onTouchStart={(e) => e.preventDefault()}
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isLoading}
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
-
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Must contain uppercase, lowercase, and a number
                   </p>
                 </div>
 
-                {/* CONFIRM PASSWORD */}
+                {/* Confirm Password */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-foreground">
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
-
                   <div className="relative">
                     <input
                       name="confirmPassword"
@@ -492,10 +488,9 @@ export default function RegisterPage() {
                       placeholder="Re-enter your password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                      className="w-full h-11 px-4 pr-12 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                       disabled={isLoading}
                     />
-
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
@@ -503,12 +498,13 @@ export default function RegisterPage() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isLoading}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff size={20} />
+                        <EyeOff className="w-5 h-5" />
                       ) : (
-                        <Eye size={20} />
+                        <Eye className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -517,7 +513,7 @@ export default function RegisterPage() {
                 <button
                   onClick={handleCompanyDetailsSubmit}
                   disabled={isLoading}
-                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6 cursor-pointer"
                 >
                   Continue
                 </button>
@@ -537,8 +533,10 @@ export default function RegisterPage() {
             {currentStep === 4 && (
               <>
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">{error}</p>
+                  <div className="mb-4 lg:mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {error}
+                    </p>
                   </div>
                 )}
                 <EmailVerification
@@ -567,80 +565,83 @@ export default function RegisterPage() {
 
                 {/* Success Message */}
                 <div className="mb-8 space-y-3">
-                  <h2 className="text-3xl font-bold text-gray-900">
+                  <h2 className="text-3xl font-bold text-foreground">
                     Congratulations!
                   </h2>
-                  <p className="text-base text-gray-600 max-w-md mx-auto">
+                  <p className="text-base text-muted-foreground max-w-md mx-auto">
                     Your organization has been successfully registered
                   </p>
                 </div>
 
                 {/* Registration Details Card */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 mb-8 border border-orange-200 shadow-sm">
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/60 dark:to-orange-900/40 rounded-2xl p-6 mb-8 border border-orange-200 dark:border-orange-800 shadow-sm">
                   <div className="space-y-4 text-left">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <Building2 className="w-5 h-5 text-orange-600" />
+                      <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Building2 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-muted-foreground mb-1">
                           Company Name
                         </p>
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-sm font-semibold text-foreground truncate">
                           {formData.companyName}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <User className="w-5 h-5 text-orange-600" />
+                      <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500 mb-1">Admin Name</p>
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Admin Name
+                        </p>
+                        <p className="text-sm font-semibold text-foreground truncate">
                           {formData.fullName}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <Mail className="w-5 h-5 text-orange-600" />
+                      <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Mail className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-muted-foreground mb-1">
                           Email Address
                         </p>
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-sm font-semibold text-foreground truncate">
                           {formData.email}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <MapPin className="w-5 h-5 text-orange-600" />
+                      <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <MapPin className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-muted-foreground mb-1">
                           Office Location
                         </p>
-                        <p className="text-sm font-semibold text-gray-900 line-clamp-2">
+                        <p className="text-sm font-semibold text-foreground line-clamp-2">
                           {formData.officeAddress || "Location set"}
                         </p>
                       </div>
                     </div>
 
-                    {/* ✅ Display country if available */}
                     {formData.country && (
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <Globe className="w-5 h-5 text-orange-600" />
+                        <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <Globe className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 mb-1">Country</p>
-                          <p className="text-sm font-semibold text-gray-900 truncate">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Country
+                          </p>
+                          <p className="text-sm font-semibold text-foreground truncate">
                             {formData.country}
                           </p>
                         </div>
@@ -650,20 +651,20 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Next Steps Info */}
-                <div className="bg-blue-50 rounded-xl p-4 mb-8 border border-blue-200">
-                  <p className="text-sm text-blue-800 font-medium mb-2">
+                <div className="bg-blue-50 dark:bg-blue-950/60 rounded-xl p-4 mb-8 border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
                     🎉 What's Next?
                   </p>
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs text-blue-700 dark:text-blue-400">
                     You can now log in to your account and start managing your
                     organization's HR operations
                   </p>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Button */}
                 <button
                   onClick={handleGoToLogin}
-                  className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg cursor-pointer"
                 >
                   Continue to Login
                 </button>

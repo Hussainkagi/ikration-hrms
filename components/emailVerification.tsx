@@ -57,7 +57,7 @@ export function EmailVerification({
 
   const handleKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
@@ -148,16 +148,16 @@ export function EmailVerification({
         <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Mail className="w-8 h-8 text-orange-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Verify Your Email
         </h2>
-        <p className="text-gray-600">We've sent a 6-digit code to</p>
-        <p className="font-semibold text-gray-900 mt-1">{email}</p>
+        <p className="text-foreground">We've sent a 6-digit code to</p>
+        <p className="font-semibold text-foreground mt-1">{email}</p>
       </div>
 
       <div className="space-y-4">
         <div className="flex flex-col items-center">
-          <label className="block text-sm font-medium text-gray-900 mb-3">
+          <label className="block text-sm font-medium text-foreground mb-3">
             Enter verification code
           </label>
           <div className="flex gap-2 justify-center" onPaste={handlePaste}>
@@ -202,7 +202,7 @@ export function EmailVerification({
         </button>
 
         <div className="text-center pt-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-foreground">
             Didn't receive the code?{" "}
           </span>
           <button
@@ -213,8 +213,8 @@ export function EmailVerification({
             {isResending
               ? "Sending..."
               : countdown > 0
-              ? `Resend (${countdown}s)`
-              : "Resend"}
+                ? `Resend (${countdown}s)`
+                : "Resend"}
           </button>
         </div>
       </div>
