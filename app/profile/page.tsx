@@ -17,6 +17,16 @@ import {
   Shield,
   Activity,
   Palette,
+  Globe,
+  Edit3,
+  Save,
+  X,
+  ChevronRight,
+  MapPinned,
+  CalendarDays,
+  Timer,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { GoogleMap, LoadScript, Circle, Marker } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
@@ -25,8 +35,8 @@ import { useTheme } from "@/contexts/theme-context";
 
 const mapContainerStyle = {
   width: "100%",
-  height: "400px",
-  borderRadius: "8px",
+  height: "450px",
+  borderRadius: "12px",
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -215,6 +225,11 @@ export default function CompanyProfilePage() {
     return days[dayNum] || dayNum;
   };
 
+  const getDayAbbr = (dayNum: any) => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return days[dayNum] || dayNum;
+  };
+
   const getCircleOptions = () => ({
     strokeColor: colorTheme.colors.primary,
     strokeOpacity: 0.8,
@@ -269,122 +284,183 @@ export default function CompanyProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Company Profile
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Organization details and configuration
-            </p>
-          </div>
+      <div className="space-y-6 pb-8">
+        {/* Header Section */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                Company Profile
+              </h1>
+              <p className="text-muted-foreground mt-1.5 text-sm">
+                Organization details and configuration
+              </p>
+            </div>
 
-          <div className="flex gap-3">
-            {!isEditing ? (
-              <button
-                onClick={handleEdit}
-                className="px-6 py-2 btn-primary rounded-lg font-medium"
-              >
-                Edit Profile
-              </button>
-            ) : (
-              <>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
+              {!isEditing ? (
                 <button
-                  onClick={handleCancel}
-                  className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors font-medium"
-                  disabled={updating}
+                  onClick={handleEdit}
+                  className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 btn-primary rounded-lg font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all"
                 >
-                  Cancel
+                  <Edit3 className="w-4 h-4" />
+                  <span className="whitespace-nowrap">Edit Profile</span>
                 </button>
-                <button
-                  onClick={handleUpdate}
-                  disabled={updating}
-                  className="px-6 py-2 btn-primary rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {updating ? "Saving..." : "Save Changes"}
-                </button>
-              </>
-            )}
+              ) : (
+                <>
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 bg-secondary/80 hover:bg-secondary text-foreground rounded-lg font-medium flex items-center justify-center gap-2 transition-all"
+                    disabled={updating}
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden sm:inline">Cancel</span>
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    disabled={updating}
+                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 btn-primary rounded-lg font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span className="whitespace-nowrap">
+                      {updating ? "Saving..." : "Save Changes"}
+                    </span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Company Name
-              </CardTitle>
-              <Building2 className="w-5 h-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-card-foreground">
-                {profileData?.companyName}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Organization</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Office Location
-              </CardTitle>
-              <MapPin className="w-5 h-5 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={formData.officeAddress}
-                  onChange={(e) =>
-                    handleInputChange("officeAddress", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
-                  placeholder="Enter office address"
-                />
-              ) : (
-                <div className="text-lg font-bold text-card-foreground">
-                  {profileData?.officeAddress}
+        {/* Main Info Cards - 3 Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Company Name Card */}
+          <Card className="bg-gradient-to-br from-card to-card/50 border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className="p-3 rounded-xl"
+                  style={{
+                    backgroundColor: `${colorTheme.colors.primary}15`,
+                  }}
+                >
+                  <Building2
+                    className="w-6 h-6"
+                    style={{ color: colorTheme.colors.primary }}
+                  />
                 </div>
-              )}
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={formData.radius}
-                  onChange={(e) => handleInputChange("radius", e.target.value)}
-                  className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-2"
-                  placeholder="Radius in meters"
-                />
-              ) : (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Radius: {profileData?.radius}m
-                </p>
-              )}
+              </div>
+              <p className="text-sm text-muted-foreground font-medium mb-2">
+                Company Name
+              </p>
+              <h3 className="text-2xl font-bold text-foreground mb-1">
+                {profileData?.companyName}
+              </h3>
+              <p className="text-xs text-muted-foreground">Organization</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Work Hours
-              </CardTitle>
-              <Clock className="w-5 h-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
+          {/* Office Location Card */}
+          <Card className="bg-gradient-to-br from-card to-card/50 border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 rounded-xl bg-blue-500/10">
+                  <MapPin className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground font-medium mb-2">
+                Office Location
+              </p>
               {isEditing ? (
                 <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <input
+                    type="text"
+                    value={formData.officeAddress}
+                    onChange={(e) =>
+                      handleInputChange("officeAddress", e.target.value)
+                    }
+                    className="w-full px-3 py-2 text-sm border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                    placeholder="Enter office address"
+                  />
+                  <input
+                    type="number"
+                    value={formData.radius}
+                    onChange={(e) =>
+                      handleInputChange("radius", e.target.value)
+                    }
+                    className="w-full px-3 py-2 text-sm border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                    placeholder="Radius in meters"
+                  />
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-xl font-bold text-foreground mb-1 line-clamp-2">
+                    {profileData?.officeAddress}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Radius: {profileData?.radius}m
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Timezone Card */}
+          <Card className="bg-gradient-to-br from-card to-card/50 border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 rounded-xl bg-orange-500/10">
+                  <Globe className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground font-medium mb-2">
+                Timezone
+              </p>
+              <h3 className="text-xl font-bold text-foreground mb-1">
+                {profileData?.timezone || "N/A"}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Organization timezone
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Work Details - 2 Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Work Hours & Weekly Off Combined Card */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-green-500/10">
+                  <Clock className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Work Schedule</CardTitle>
+                  <CardDescription className="text-xs">
+                    Daily hours and weekly offs
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Work Hours */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Work Hours
+                </label>
+                {isEditing ? (
+                  <div className="flex items-center gap-3">
                     <input
                       type="time"
                       value={formData.workStartTime}
                       onChange={(e) =>
                         handleInputChange("workStartTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                      className="flex-1 px-3 py-2.5 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                     />
-                    <span className="text-muted-foreground text-center sm:text-left">
+                    <span className="text-muted-foreground font-medium">
                       to
                     </span>
                     <input
@@ -393,216 +469,264 @@ export default function CompanyProfilePage() {
                       onChange={(e) =>
                         handleInputChange("workEndTime", e.target.value)
                       }
-                      className="flex-1 px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                      className="flex-1 px-3 py-2.5 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                     />
                   </div>
-                </div>
-              ) : (
-                <div className="text-lg font-bold text-card-foreground">
-                  {formatTime(profileData?.workStartTime)} -{" "}
-                  {formatTime(profileData?.workEndTime)}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Daily schedule
-              </p>
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-accent/50 rounded-lg">
+                    <Timer className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-lg font-semibold text-foreground">
+                      {formatTime(profileData?.workStartTime)} -{" "}
+                      {formatTime(profileData?.workEndTime)}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Weekly Off
-              </CardTitle>
-              <Calendar className="w-5 h-5 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
+              {/* Weekly Off Days */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">
+                  Weekly Off Days
+                </label>
+                {isEditing ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
                     {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                       <label
                         key={day}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className={`flex flex-col items-center gap-1.5 p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          formData.weeklyOffDays.includes(day)
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-background hover:border-primary/50"
+                        }`}
                       >
                         <input
                           type="checkbox"
                           checked={formData.weeklyOffDays.includes(day)}
                           onChange={() => handleWeeklyOffDaysChange(day)}
-                          className="w-4 h-4 text-primary border-border rounded ring-primary"
-                          style={{ accentColor: colorTheme.colors.primary }}
+                          className="hidden"
                         />
-                        <span className="text-sm text-foreground">
-                          {getDayName(day)}
+                        <span
+                          className={`text-xs font-semibold ${
+                            formData.weeklyOffDays.includes(day)
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {getDayAbbr(day)}
                         </span>
                       </label>
                     ))}
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profileData?.weeklyOffDays?.length > 0 ? (
-                    profileData.weeklyOffDays.map((day: any) => (
-                      <span
-                        key={day}
-                        className="px-3 py-1 text-sm rounded-full font-medium"
-                        style={{
-                          backgroundColor: `${colorTheme.colors.primary}20`,
-                          color: colorTheme.colors.primary,
-                        }}
-                      >
-                        {getDayName(day)}
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {profileData?.weeklyOffDays?.length > 0 ? (
+                      profileData.weeklyOffDays.map((day: any) => (
+                        <span
+                          key={day}
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg"
+                          style={{
+                            backgroundColor: `${colorTheme.colors.primary}20`,
+                            color: colorTheme.colors.primary,
+                          }}
+                        >
+                          {getDayName(day)}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 bg-accent/50 rounded-lg">
+                        No weekly offs
                       </span>
-                    ))
-                  ) : (
-                    <span className="text-muted-foreground text-sm">None</span>
-                  )}
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status & Agreement Card */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-purple-500/10">
+                  <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Days off per week
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Status
-              </CardTitle>
-              <Activity className="w-5 h-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
-                {profileData?.isActive ? (
-                  <span className="text-green-600">Active</span>
-                ) : (
-                  <span className="text-red-600">Inactive</span>
-                )}
+                <div>
+                  <CardTitle className="text-lg">Organization Status</CardTitle>
+                  <CardDescription className="text-xs">
+                    Current state and agreements
+                  </CardDescription>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Organization status
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Agreement
-              </CardTitle>
-              <Shield className="w-5 h-5 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
-                {profileData?.agreementAccepted ? (
-                  <span className="text-green-600">Accepted</span>
-                ) : (
-                  <span className="text-yellow-600">Pending</span>
-                )}
+            <CardContent className="space-y-4">
+              {/* Status */}
+              <div className="flex items-center justify-between p-4 bg-accent/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  {profileData?.isActive ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Status
+                    </p>
+                    <p
+                      className={`text-lg font-bold ${
+                        profileData?.isActive
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {profileData?.isActive ? "Active" : "Inactive"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Terms & conditions
-              </p>
+
+              {/* Agreement */}
+              <div className="flex items-center justify-between p-4 bg-accent/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Shield
+                    className={`w-5 h-5 ${
+                      profileData?.agreementAccepted
+                        ? "text-green-600"
+                        : "text-yellow-600"
+                    }`}
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Agreement
+                    </p>
+                    <p
+                      className={`text-lg font-bold ${
+                        profileData?.agreementAccepted
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {profileData?.agreementAccepted ? "Accepted" : "Pending"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Organization Info */}
+              <div className="pt-2 space-y-3 border-t border-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Created</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {formatDate(profileData?.createdAt)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Updated</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {formatDate(profileData?.updatedAt)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Country</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {profileData?.country || "N/A"}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">
-              Shift Timings
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Your shift timings can be managed here
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <button
-              onClick={() => router.push("/shifts")}
-              className="px-5 py-2 btn-primary rounded-lg font-medium"
-            >
-              Manage Shift Timings
-            </button>
+        {/* Shift Timings Card */}
+        <Card className="bg-card border-border shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-indigo-500/10 flex-shrink-0">
+                  <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                    Shift Timings
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Manage employee shift schedules and configurations
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push("/shifts")}
+                className="w-full sm:w-auto px-4 sm:px-5 py-2.5 btn-primary rounded-lg font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all"
+              >
+                <span>Manage Shifts</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </CardContent>
         </Card>
 
         {/* Map Section */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">
-              Office Location Map
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {isEditing ? (
-                <div className="space-y-2 mt-2">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={formData.latitude}
-                        onChange={(e) =>
-                          handleInputChange("latitude", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-1"
-                        placeholder="Latitude"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Longitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={formData.longitude}
-                        onChange={(e) =>
-                          handleInputChange("longitude", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-border bg-input text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary mt-1"
-                        placeholder="Longitude"
-                      />
-                    </div>
-                  </div>
+        <Card className="bg-card border-border shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <MapPinned className="w-5 h-5 text-red-600 dark:text-red-400" />
                 </div>
-              ) : (
-                `Office located at ${profileData?.officeAddress} with ${profileData?.radius}m check-in radius`
-              )}
-            </CardDescription>
+                <div>
+                  <CardTitle className="text-lg">Office Location Map</CardTitle>
+                  <CardDescription className="text-xs">
+                    {isEditing
+                      ? "Update coordinates and check-in radius"
+                      : `${profileData?.officeAddress} • ${profileData?.radius}m radius`}
+                  </CardDescription>
+                </div>
+              </div>
+            </div>
+
+            {isEditing && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 pt-4 border-t border-border">
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground block mb-2">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) =>
+                      handleInputChange("latitude", e.target.value)
+                    }
+                    className="w-full px-3 py-2.5 text-sm border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                    placeholder="Latitude"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground block mb-2">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) =>
+                      handleInputChange("longitude", e.target.value)
+                    }
+                    className="w-full px-3 py-2.5 text-sm border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
+                    placeholder="Longitude"
+                  />
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
-            <LoadScript
-              googleMapsApiKey={
-                process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY || ""
-              }
-            >
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={
-                  isEditing
-                    ? {
-                        lat: parseFloat(formData.latitude),
-                        lng: parseFloat(formData.longitude),
-                      }
-                    : center
+            <div className="rounded-xl overflow-hidden border border-border">
+              <LoadScript
+                googleMapsApiKey={
+                  process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY || ""
                 }
-                zoom={15}
               >
-                <Marker
-                  position={
-                    isEditing
-                      ? {
-                          lat: parseFloat(formData.latitude),
-                          lng: parseFloat(formData.longitude),
-                        }
-                      : center
-                  }
-                />
-                <Circle
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
                   center={
                     isEditing
                       ? {
@@ -611,89 +735,89 @@ export default function CompanyProfilePage() {
                         }
                       : center
                   }
-                  radius={
-                    isEditing
-                      ? parseInt(formData.radius) || 200
-                      : profileData?.radius || 200
-                  }
-                  options={getCircleOptions()}
-                />
-              </GoogleMap>
-            </LoadScript>
-          </CardContent>
-        </Card>
-
-        {/* Additional Details */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">
-              Organization Details
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Additional information about the organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Created Date
-                </p>
-                <p className="text-sm text-card-foreground mt-1">
-                  {formatDate(profileData?.createdAt)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Last Updated
-                </p>
-                <p className="text-sm text-card-foreground mt-1">
-                  {formatDate(profileData?.updatedAt)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Coordinates
-                </p>
-                <p className="text-sm text-card-foreground mt-1">
-                  {profileData?.latitude?.toFixed(6)},{" "}
-                  {profileData?.longitude?.toFixed(6)}
-                </p>
-              </div>
+                  zoom={15}
+                >
+                  <Marker
+                    position={
+                      isEditing
+                        ? {
+                            lat: parseFloat(formData.latitude),
+                            lng: parseFloat(formData.longitude),
+                          }
+                        : center
+                    }
+                  />
+                  <Circle
+                    center={
+                      isEditing
+                        ? {
+                            lat: parseFloat(formData.latitude),
+                            lng: parseFloat(formData.longitude),
+                          }
+                        : center
+                    }
+                    radius={
+                      isEditing
+                        ? parseInt(formData.radius) || 200
+                        : profileData?.radius || 200
+                    }
+                    options={getCircleOptions()}
+                  />
+                </GoogleMap>
+              </LoadScript>
             </div>
+            {!isEditing && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 p-4 bg-accent/50 rounded-lg">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Coordinates
+                  </p>
+                  <p className="text-xs sm:text-sm font-mono font-medium text-foreground break-all">
+                    {profileData?.latitude?.toFixed(6)},{" "}
+                    {profileData?.longitude?.toFixed(6)}
+                  </p>
+                </div>
+                <div className="hidden sm:block h-8 w-px bg-border"></div>
+                <div className="flex-shrink-0">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Check-in Radius
+                  </p>
+                  <p className="text-xs sm:text-sm font-semibold text-foreground">
+                    {profileData?.radius} meters
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Appearance Settings */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-card-foreground flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-primary" />
-                  Appearance
-                </CardTitle>
-                <CardDescription className="text-muted-foreground mt-1">
-                  Customize your interface theme and colors
-                </CardDescription>
+        <Card className="bg-gradient-to-br from-card to-card/50 border-border shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-pink-500/10 flex-shrink-0">
+                  <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                    Appearance
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Customize your interface theme and colors
+                  </p>
+                </div>
               </div>
-              <ThemeToggle />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Toggle between light and dark mode, and choose from a variety of
-                color themes or create your own custom theme.
-              </p>
-              <div className="flex items-center gap-2 p-3 bg-accent rounded-lg">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: colorTheme.colors.primary }}
-                />
-                <span className="text-sm font-medium text-accent-foreground">
-                  Current theme: {colorTheme.name}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-accent rounded-lg">
+                  <div
+                    className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: colorTheme.colors.primary }}
+                  />
+                  <span className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+                    {colorTheme.name}
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>

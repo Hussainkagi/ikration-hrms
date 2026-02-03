@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Globe,
 } from "lucide-react";
 import { EmailVerification } from "@/components/emailVerification";
 import { LocationSetup } from "@/components/locationInput";
@@ -79,6 +80,7 @@ export default function RegisterPage() {
     longitude: 0,
     radius: 100,
     officeAddress: "",
+    country: "", // ✅ Added country field
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -211,8 +213,11 @@ export default function RegisterPage() {
       latitude: parseFloat(location.latitude),
       radius: parseInt(location.radius),
       officeAddress: location.address,
+      country: location.country, // ✅ Include country from location data
       agreementAccepted: true,
     };
+
+    console.log("📤 Sending registration data:", registrationData); // Debug log
 
     try {
       const result = await API.register(registrationData);
@@ -230,13 +235,14 @@ export default function RegisterPage() {
         return;
       }
 
-      // Store location data for later use
+      // Store location data for later use (including country)
       setFormData({
         ...formData,
         latitude: parseFloat(location.latitude),
         longitude: parseFloat(location.longitude),
         radius: parseInt(location.radius),
         officeAddress: location.address,
+        country: location.country, // ✅ Store country in formData
       });
       setCurrentStep(4); // Move to OTP verification
     } catch (err: any) {
@@ -625,6 +631,21 @@ export default function RegisterPage() {
                         </p>
                       </div>
                     </div>
+
+                    {/* ✅ Display country if available */}
+                    {formData.country && (
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <Globe className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500 mb-1">Country</p>
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {formData.country}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

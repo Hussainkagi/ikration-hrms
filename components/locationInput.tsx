@@ -1,14 +1,28 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Loader2, ArrowLeft, Search, X } from "lucide-react";
+import {
+  MapPin,
+  Loader2,
+  ArrowLeft,
+  Search,
+  X,
+  ChevronDown,
+  Globe,
+} from "lucide-react";
 import { AgreementCheckbox } from "@/components/agreement";
+import {
+  COUNTRIES,
+  Country,
+  searchCountries,
+} from "@/hooks/Countries.constant";
 
 interface LocationData {
   latitude: string;
   longitude: string;
   address: string;
   radius: string;
+  country: string;
 }
 
 interface LocationSetupProps {
@@ -32,10 +46,19 @@ export function LocationSetup({
     longitude: "",
     address: "",
     radius: "100",
+    country: "",
   });
   const [error, setError] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
+
+  // Country selector state
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [countrySearchQuery, setCountrySearchQuery] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [filteredCountries, setFilteredCountries] =
+    useState<Country[]>(COUNTRIES);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
 
   // Google Places Autocomplete
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +97,7 @@ export function LocationSetup({
       }
 
       const existingScript = document.querySelector(
-        'script[src*="maps.googleapis.com"]'
+        'script[src*="maps.googleapis.com"]',
       );
 
       if (existingScript) {
@@ -97,10 +120,10 @@ export function LocationSetup({
 
       if (!apiKey) {
         console.error(
-          "❌ Google Maps API key not found in environment variables"
+          "❌ Google Maps API key not found in environment variables",
         );
         setError(
-          "Google Maps API key is missing. Please configure NEXT_PUBLIC_GOOGLE_MAP_API_KEY"
+          "Google Maps API key is missing. Please configure NEXT_PUBLIC_GOOGLE_MAP_API_KEY",
         );
         return;
       }
@@ -120,7 +143,7 @@ export function LocationSetup({
       script.onerror = (err) => {
         console.error("❌ Failed to load Google Maps script:", err);
         setError(
-          "Failed to load Google Maps. Please check your API key and internet connection."
+          "Failed to load Google Maps. Please check your API key and internet connection.",
         );
       };
 
@@ -144,6 +167,36 @@ export function LocationSetup({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Handle click outside to close country dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowCountryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter countries based on search
+  useEffect(() => {
+    const results = searchCountries(countrySearchQuery);
+    setFilteredCountries(results);
+  }, [countrySearchQuery]);
+
+  // Handle country selection
+  const handleSelectCountry = (country: Country) => {
+    setSelectedCountry(country);
+    setLocation({ ...location, country: country.name });
+    setCountrySearchQuery("");
+    setShowCountryDropdown(false);
+    setError("");
+  };
 
   // Search for places
   const handleSearchChange = (value: string) => {
@@ -179,7 +232,7 @@ export function LocationSetup({
               predictions.map((p) => ({
                 description: p.description,
                 place_id: p.place_id,
-              }))
+              })),
             );
             setShowSuggestions(true);
           } else if (status === "ZERO_RESULTS") {
@@ -193,11 +246,11 @@ export function LocationSetup({
 
             if (status === "REQUEST_DENIED") {
               setError(
-                "Google Maps API access denied. Please check your API key and restrictions."
+                "Google Maps API access denied. Please check your API key and restrictions.",
               );
             }
           }
-        }
+        },
       );
     } catch (err) {
       console.error("❌ Error calling Places API:", err);
@@ -244,10 +297,10 @@ export function LocationSetup({
           } else {
             console.error("❌ Place details error:", status);
             setError(
-              "Could not get location details. Please try another location."
+              "Could not get location details. Please try another location.",
             );
           }
-        }
+        },
       );
     } catch (err) {
       console.error("❌ Error getting place details:", err);
@@ -276,7 +329,7 @@ export function LocationSetup({
       (error) => {
         setError("Unable to retrieve your location. Please enter manually.");
         setGettingLocation(false);
-      }
+      },
     );
   };
 
@@ -287,6 +340,15 @@ export function LocationSetup({
         behavior: "smooth",
       });
       setError("Please read and agree to the Agreement");
+      return;
+    }
+
+    if (!location.country) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+      setError("Please select your country");
       return;
     }
 
@@ -339,7 +401,101 @@ export function LocationSetup({
       )}
 
       <div className="space-y-4">
+        {/* Country Selector */}
+        <div className="space-y-2" ref={countryDropdownRef}>
+          <label className="block text-sm font-medium text-gray-900">
+            Country <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+              disabled={isLoading}
+              className="w-full h-11 px-4 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all text-left flex items-center gap-3 bg-white disabled:opacity-50"
+            >
+              {selectedCountry ? (
+                <>
+                  <span className="text-2xl">{selectedCountry.flag}</span>
+                  <span className="text-gray-900">{selectedCountry.name}</span>
+                </>
+              ) : (
+                <>
+                  <Globe className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-500">Select your country</span>
+                </>
+              )}
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3" />
+            </button>
+
+            {/* Country Dropdown */}
+            {showCountryDropdown && (
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
+                {/* Search Input */}
+                <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search countries..."
+                      value={countrySearchQuery}
+                      onChange={(e) => setCountrySearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    {countrySearchQuery && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCountrySearchQuery("");
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Countries List */}
+                <div className="overflow-y-auto max-h-64">
+                  {filteredCountries.length > 0 ? (
+                    filteredCountries.map((country) => (
+                      <button
+                        key={country.code}
+                        onClick={() => handleSelectCountry(country)}
+                        className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 flex items-center gap-3"
+                      >
+                        <span className="text-2xl">{country.flag}</span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">
+                            {country.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {country.code} • {country.timezone}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-8 text-center text-sm text-gray-500">
+                      No countries found
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          {selectedCountry && (
+            <p className="text-xs text-gray-500">
+              Timezone: {selectedCountry.timezone}
+            </p>
+          )}
+        </div>
+
         {/* Get Current Location Button */}
+        <label className="block text-sm font-medium text-gray-900 mb-2 mt-2">
+          Your Office / Outlet Location
+        </label>
         <button
           onClick={getCurrentLocation}
           disabled={gettingLocation || isLoading}
@@ -408,7 +564,7 @@ export function LocationSetup({
                     onClick={() =>
                       handleSelectPlace(
                         suggestion.place_id,
-                        suggestion.description
+                        suggestion.description,
                       )
                     }
                     className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 text-sm"

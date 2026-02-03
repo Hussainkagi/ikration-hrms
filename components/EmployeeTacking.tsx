@@ -39,22 +39,6 @@ import { useTheme } from "@/contexts/theme-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "YOUR_BASE_URL_HERE";
 
-// Common timezones for the dropdown
-const COMMON_TIMEZONES = [
-  { value: "Asia/Dubai", label: "Dubai (UTC+4)" },
-  { value: "Asia/Kolkata", label: "India (UTC+5:30)" },
-  { value: "America/New_York", label: "New York (UTC-5)" },
-  { value: "America/Los_Angeles", label: "Los Angeles (UTC-8)" },
-  { value: "Europe/London", label: "London (UTC+0)" },
-  { value: "Europe/Paris", label: "Paris (UTC+1)" },
-  { value: "Asia/Singapore", label: "Singapore (UTC+8)" },
-  { value: "Asia/Tokyo", label: "Tokyo (UTC+9)" },
-  { value: "Australia/Sydney", label: "Sydney (UTC+11)" },
-  { value: "Asia/Shanghai", label: "Shanghai (UTC+8)" },
-  { value: "Asia/Hong_Kong", label: "Hong Kong (UTC+8)" },
-  { value: "UTC", label: "UTC (UTC+0)" },
-];
-
 interface TrackingRecord {
   id: string;
   type: "check-in" | "check-out";
@@ -103,6 +87,26 @@ interface AttendanceRecord {
   updatedAt: string;
 }
 
+interface OrganizationProfile {
+  id: string;
+  orgId: string;
+  companyName: string;
+  officeAddress: string;
+  latitude: number;
+  longitude: number;
+  radius: number;
+  country: string;
+  timezone: string;
+  workStartTime: string;
+  workEndTime: string;
+  weeklyOffDays: string[];
+  agreementAccepted: boolean;
+  agreementAcceptedAt: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 type ReportType =
   | "casual"
   | "detailed"
@@ -118,7 +122,9 @@ export default function EmployeeTracking() {
   const [reportType, setReportType] = useState<ReportType>("casual");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [selectedTimezone, setSelectedTimezone] = useState<string>("");
+  const [organizationTimezone, setOrganizationTimezone] = useState<string>("");
+  const [organizationProfile, setOrganizationProfile] =
+    useState<OrganizationProfile | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
@@ -129,15 +135,12 @@ export default function EmployeeTracking() {
   const [checkInOutData, setCheckInOutData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingEmployees, setFetchingEmployees] = useState(true);
+  const [fetchingOrgProfile, setFetchingOrgProfile] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Detect user's timezone on component mount
+  // Fetch organization profile on component mount
   useEffect(() => {
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setSelectedTimezone(userTimezone);
-  }, []);
-
-  useEffect(() => {
+    fetchOrganizationProfile();
     fetchEmployees();
   }, []);
 
@@ -151,6 +154,42 @@ export default function EmployeeTracking() {
 
     return null;
   }
+
+  const fetchOrganizationProfile = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`${BASE_URL}/organization/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch organization profile");
+      }
+
+      const data: OrganizationProfile = await response.json();
+      setOrganizationProfile(data);
+      setOrganizationTimezone(data.timezone);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch organization profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setFetchingOrgProfile(false);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -204,7 +243,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("userId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance${
@@ -251,7 +290,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/detailed${
@@ -298,7 +337,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/headcount${
@@ -345,7 +384,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/punctuality-ratio${
@@ -392,7 +431,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/working-hours${
@@ -439,7 +478,7 @@ export default function EmployeeTracking() {
       if (selectedEmployee) params.append("employeeId", selectedEmployee);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (selectedTimezone) params.append("timezone", selectedTimezone);
+      if (organizationTimezone) params.append("timezone", organizationTimezone);
 
       const queryString = params.toString();
       const url = `${BASE_URL}/attendance-reports/check-in-out-ratio${
@@ -489,8 +528,6 @@ export default function EmployeeTracking() {
     setSelectedEmployee("");
     setStartDate("");
     setEndDate("");
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setSelectedTimezone(userTimezone);
     setAttendanceRecords([]);
     setDetailedReportData(null);
     setHeadcountData(null);
@@ -680,18 +717,20 @@ export default function EmployeeTracking() {
     },
   ];
 
+  const isDataLoading = fetchingEmployees || fetchingOrgProfile;
+
   return (
     <>
       <Card className="bg-card border-border">
         <CardContent className="space-y-4">
-          {fetchingEmployees ? (
+          {isDataLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2
                 className="w-6 h-6 animate-spin"
                 style={{ color: colorTheme.colors.primary }}
               />
               <span className="ml-2 text-muted-foreground">
-                Loading employees...
+                Loading data...
               </span>
             </div>
           ) : (
@@ -741,23 +780,18 @@ export default function EmployeeTracking() {
                   </select>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     <Globe className="w-4 h-4 inline mr-1" />
                     Timezone
                   </label>
-                  <select
-                    value={selectedTimezone}
-                    onChange={(e) => setSelectedTimezone(e.target.value)}
-                    className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
-                  >
-                    {COMMON_TIMEZONES.map((tz) => (
-                      <option key={tz.value} value={tz.value}>
-                        {tz.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div className="w-full px-3 py-2 border border-border bg-muted text-foreground rounded-lg cursor-not-allowed opacity-75">
+                    {organizationTimezone || "Loading..."}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Organization timezone (read-only)
+                  </p>
+                </div> */}
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -781,6 +815,15 @@ export default function EmployeeTracking() {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 ring-primary"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Globe className="w-4 h-4 inline mr-1" />
+                    Timezone
+                  </label>
+                  <div className="w-full px-3 py-2   text-foreground rounded-lg cursor-not-allowed opacity-75">
+                    {organizationTimezone || "Loading..."}
+                  </div>
                 </div>
               </div>
 
@@ -820,7 +863,7 @@ export default function EmployeeTracking() {
         </CardContent>
       </Card>
 
-      {!fetchingEmployees && reportType === "casual" && (
+      {!isDataLoading && reportType === "casual" && (
         <div className="mt-6">
           <CommonTable
             data={attendanceRecords}
@@ -843,37 +886,31 @@ export default function EmployeeTracking() {
         </div>
       )}
 
-      {!fetchingEmployees &&
-        reportType === "detailed" &&
-        detailedReportData && (
-          <div className="mt-6">
-            <AttendanceDetailedReport data={detailedReportData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "detailed" && detailedReportData && (
+        <div className="mt-6">
+          <AttendanceDetailedReport data={detailedReportData} />
+        </div>
+      )}
 
-      {!fetchingEmployees && reportType === "headcount" && headcountData && (
+      {!isDataLoading && reportType === "headcount" && headcountData && (
         <div className="mt-6">
           <HeadcountReport data={headcountData} />
         </div>
       )}
 
-      {!fetchingEmployees &&
-        reportType === "punctuality" &&
-        punctualityData && (
-          <div className="mt-6">
-            <PunctualityReport data={punctualityData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "punctuality" && punctualityData && (
+        <div className="mt-6">
+          <PunctualityReport data={punctualityData} />
+        </div>
+      )}
 
-      {!fetchingEmployees &&
-        reportType === "workinghours" &&
-        workingHoursData && (
-          <div className="mt-6">
-            <WorkingHoursReport data={workingHoursData} />
-          </div>
-        )}
+      {!isDataLoading && reportType === "workinghours" && workingHoursData && (
+        <div className="mt-6">
+          <WorkingHoursReport data={workingHoursData} />
+        </div>
+      )}
 
-      {!fetchingEmployees && reportType === "checkinout" && checkInOutData && (
+      {!isDataLoading && reportType === "checkinout" && checkInOutData && (
         <div className="mt-6">
           <CheckInOutReport data={checkInOutData} />
         </div>

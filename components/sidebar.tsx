@@ -178,12 +178,7 @@ export default function Sidebar() {
           <div className="flex flex-col min-w-0">
             <span className="text-xs text-muted-foreground">Ikration</span>
             <span className="text-lg font-bold truncate">
-              <span
-                className="bg-gradient-to-r bg-clip-text text-transparent"
-                style={{
-                  backgroundImage: `linear-gradient(to right, ${colorTheme.colors.primary}, ${colorTheme.colors.secondary})`,
-                }}
-              >
+              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
                 team
               </span>
               <span className="text-foreground">Book</span>
