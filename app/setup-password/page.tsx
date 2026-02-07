@@ -118,7 +118,7 @@ export default function SetupPasswordPage() {
     return (
       <div className="min-h-screen flex">
         {/* Left side - Success Message */}
-        <div className="w-full lg:w-1/2 flex flex-col bg-white">
+        <div className="w-full lg:w-1/2 flex flex-col bg-background">
           {/* Logo */}
           <div className="p-6 lg:p-8">
             <div className="flex items-center gap-2">
@@ -144,16 +144,16 @@ export default function SetupPasswordPage() {
             <div className="w-full max-w-md text-center">
               {/* Success Icon */}
               <div className="mb-6 flex justify-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-12 h-12 text-green-600" />
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
                 </div>
               </div>
 
               {/* Success Message */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              <h1 className="text-3xl font-bold text-foreground mb-3">
                 Password Set Successfully!
               </h1>
-              <p className="text-gray-600 mb-8">
+              <p className="text-muted-foreground mb-8">
                 Your password has been set up successfully. You can now sign in
                 to your account.
               </p>
@@ -200,7 +200,7 @@ export default function SetupPasswordPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Setup Password Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col bg-background">
         {/* Logo */}
         <div className="p-6 lg:p-8">
           <div className="flex items-center gap-2">
@@ -226,10 +226,10 @@ export default function SetupPasswordPage() {
           <div className="w-full max-w-md">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Set up your password
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 {email
                   ? `Setting up password for ${email}`
                   : "Please create a secure password for your account"}
@@ -238,8 +238,10 @@ export default function SetupPasswordPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -249,7 +251,7 @@ export default function SetupPasswordPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-900"
+                  className="block text-sm font-medium text-foreground"
                 >
                   New Password
                 </label>
@@ -262,14 +264,14 @@ export default function SetupPasswordPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
-                    className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 pr-12 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     required
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                     disabled={isLoading}
                   >
@@ -280,7 +282,7 @@ export default function SetupPasswordPage() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Must be at least 8 characters long
                 </p>
               </div>
@@ -289,7 +291,7 @@ export default function SetupPasswordPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-900"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Confirm Password
                 </label>
@@ -302,14 +304,14 @@ export default function SetupPasswordPage() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
-                    className="w-full h-11 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all"
+                    className="w-full h-11 px-4 pr-12 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     required
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                     disabled={isLoading}
                   >
@@ -333,12 +335,12 @@ export default function SetupPasswordPage() {
 
               {/* Back to Login Link */}
               <div className="text-center pt-2">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   Already have a password?{" "}
                 </span>
                 <button
                   type="button"
-                  className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors disabled:opacity-50 cursor-pointer"
                   disabled={isLoading}
                   onClick={handleRedirectToLogin}
                 >
